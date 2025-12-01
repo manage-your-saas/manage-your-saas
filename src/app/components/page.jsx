@@ -38,18 +38,28 @@
           >
             Discord
           </a>
-          <button 
-    onClick={() => router.push('/joinhere')}
-    className="text-lg lg:text-1xl xl:text-2xl p-3 bg-black text-white rounded font-bold hover:opacity-90 transition"
-  >
-    Get Started
-  </button>
+            <a 
+            href='https://joe156.app.n8n.cloud/form/0eed386d-7c72-46d2-97f4-4ed4fb8076c2'
+      
+      className="text-lg lg:text-1xl xl:text-2xl p-3 bg-black text-white rounded font-bold hover:opacity-90 transition"
+    >
+      Get Started
+    </a>
         </div>
       </div>
     </div>
   </nav>
 
   <main className="mb-20"></main>
+
+  <a 
+  href="https://accounts.google.com/o/oauth2/v2/auth?client_id=738296494202-93acja65bsov492ms9gn50ns1ltbjcka.apps.googleusercontent.com&redirect_uri=https://joe156.app.n8n.cloud/webhook-test/authorize-google&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fwebmasters.readonly%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email&access_type=offline&prompt=consent"
+  class="google-btn"
+>
+  Continue with Google
+</a>
+
+
 
 
         <div className=" max-w-6xl mx-auto px-6 py-12 lg:py-20">
@@ -67,12 +77,13 @@
             </p>
             {/* CTA Buttons - Centered */}
             <div className="flex items-center justify-center gap-4 mb-3">
-              <button 
-    onClick={() => router.push('/joinhere')}
+              <a 
+          href='https://joe156.app.n8n.cloud/form/0eed386d-7c72-46d2-97f4-4ed4fb8076c2'
+    
     className="text-lg lg:text-1xl xl:text-2xl p-3 bg-black text-white rounded font-bold hover:opacity-90 transition"
   >
-    Get started
-  </button>
+    Get Started
+  </a>
               <button className="text-lg lg:text-1xl xl:text-2xl p-3 bg-gray-800 text-white rounded font-bold hover:opacity-90 transition">
                 Contact us 
               </button>
