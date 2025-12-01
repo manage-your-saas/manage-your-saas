@@ -18,25 +18,33 @@ export default function JoinHere() {
 
     setIsSubmitting(true);
     try {
-      // Here you would typically send this to your backend
-      // For now, we'll just simulate an API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Clear form and show success message
-      setEmail('');
-      setMessage({ 
-        text: 'Thank you! We\'ll notify you when we launch!', 
-        isError: false 
+      const response = await fetch('/api/joinhere', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
       });
-      
-      // Optionally redirect after a delay
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to save email');
+      }
+
+      setEmail('');
+      setMessage({
+        text: data.message || "Thank you! We'll notify you when we launch!",
+        isError: false,
+      });
+
       setTimeout(() => {
         router.push('/');
       }, 3000);
     } catch (error) {
-      setMessage({ 
-        text: 'Something went wrong. Please try again.', 
-        isError: true 
+      setMessage({
+        text: error.message || 'Something went wrong. Please try again.',
+        isError: true,
       });
     } finally {
       setIsSubmitting(false);
@@ -49,7 +57,7 @@ export default function JoinHere() {
         <div className="text-center mb-8">
           <h1 className="text-3xl xl:text-4xl lg:text-5xl font-bold text-gray-900 mb-3">Coming Soon!</h1>
           <p className="text-1xl xl:text-2xl lg:text-3xl text-gray-600">
-            We're currently building something amazing. Enter your email to get notified when we launch!
+            We&apos;re currently building something amazing. Enter your email to get notified when we launch!
           </p>
         </div>
 
