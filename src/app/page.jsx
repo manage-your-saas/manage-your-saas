@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import LandingPage from './components/page';
+import LandingPage from '@/app/components/page';  // Updated import path
 
 export const metadata = {
   title: 'Manage Your SaaS',
