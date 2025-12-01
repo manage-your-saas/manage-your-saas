@@ -1,9 +1,11 @@
-import React from "react";
+import { Metadata } from 'next';
+import LandingPage from './components/page';
 
-const Landing = () => {
-    return (
-        <div>
-            <h1>Landing</h1>
-        </div>
-    );
+export const metadata = {
+  title: 'Manage Your SaaS',
+  description: 'Run your entire SaaS from one simple dashboard. Manage social media, ads, SEO, user analytics, and more in one place.',
 };
+
+export default function Home() {
+  return <LandingPage />;
+}
