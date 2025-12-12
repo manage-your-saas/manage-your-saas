@@ -13,6 +13,9 @@ const playfair = Playfair_Display({
 export const metadata = {
   title: 'Manage Your SaaS - All-in-One Dashboard',
   description: 'Run your entire SaaS from one simple dashboard',
+  verification: {
+    google: 'DdCQpAAt_2GhJqxvq93QKC7XccLHxSQYoWUQHCliXBA',
+  },
 };
 
 export default function RootLayout({ children }) {
