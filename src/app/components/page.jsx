@@ -7,6 +7,7 @@
   import Image from 'next/image';
   import { FiSun, FiMoon } from 'react-icons/fi'; // You'll need to install react-icons
   import { useRouter } from 'next/navigation';
+  import Link  from 'next/link'
 
 
   export default function App() {
@@ -53,11 +54,15 @@
   <main className="mb-20"></main>
 
   {/* <a 
-  href="https://accounts.google.com/o/oauth2/v2/auth?client_id=738296494202-93acja65bsov492ms9gn50ns1ltbjcka.apps.googleusercontent.com&redirect_uri=https://joe156.app.n8n.cloud/webhook-test/authorize-google&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fwebmasters.readonly%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email&access_type=offline&prompt=consent"
+  href="https://accounts.google.com/o/oauth2/v2/auth?client_id=738296494202-93acja65bsov492ms9gn50ns1ltbjcka.apps.googleusercontent.com&redirect_uri=https://joe156.app.n8n.cloud/webhook/authorize-google&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fwebmasters.readonly%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email&access_type=offline&prompt=consent"
   class="google-btn"
 >
   Continue with Google
 </a> */}
+
+{/* <a  className=' text-3xl' href=""> */}
+ <Link href="/oauth" className="text-3xl">Connect apps</Link>
+{/* </a> */}
 
 
 
