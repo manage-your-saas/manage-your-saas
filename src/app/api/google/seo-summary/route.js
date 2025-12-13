@@ -100,6 +100,28 @@ export async function GET(request) {
     const data = response.data;
     const rows = data.rows || [];
     
+    // If no rows, return empty data structure
+    if (!rows || rows.length === 0) {
+      return NextResponse.json({
+        success: true,
+        siteUrl,
+        period: {
+          startDate: startDateStr,
+          endDate: endDateStr,
+          days,
+        },
+        summary: {
+          clicks: 0,
+          impressions: 0,
+          ctr: 0,
+          ctrPercentage: 0,
+          averagePosition: 0,
+          rowCount: 0,
+        },
+        message: 'No search data available for this period. Search Console data typically appears 2-3 days after search activity.',
+      });
+    }
+    
     // Calculate totals and averages
     let totalClicks = 0;
     let totalImpressions = 0;

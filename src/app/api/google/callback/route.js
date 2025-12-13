@@ -22,9 +22,19 @@ export async function GET(request) {
 
     // Check if user denied access
     if (error) {
-      return NextResponse.redirect(
-        `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/joinhere?error=access_denied`
-      );
+      // Try to get email from state to redirect back to SEO page
+      let email = null;
+      if (state) {
+        try {
+          email = Buffer.from(state, 'base64').toString('utf-8');
+        } catch (e) {
+          console.warn('Could not decode state parameter');
+        }
+      }
+      const redirectUrl = email 
+        ? `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/seo?email=${encodeURIComponent(email)}&error=access_denied`
+        : `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/seo?error=access_denied`;
+      return NextResponse.redirect(redirectUrl);
     }
 
     // Validate that we received an authorization code
@@ -41,8 +51,10 @@ export async function GET(request) {
     // Connect to database
     await dbConnect();
 
-    // Extract email from state if provided (base64 encoded)
+    // Get user's email from Google using the access token
     let email = null;
+    
+    // First, try to get email from state if provided (for backward compatibility)
     if (state) {
       try {
         email = Buffer.from(state, 'base64').toString('utf-8');
@@ -51,20 +63,36 @@ export async function GET(request) {
       }
     }
 
-    // If no email in state, you might want to get it from Google API
-    // For now, we'll create/update user record
-    // In production, you'd typically get user info from Google and use their email
-    
-    // Find or create user
-    // Note: In a real app, you'd want to get the user's email from Google's userinfo API
-    // For now, we'll use a placeholder or require email to be passed
+    // If no email from state, fetch it from Google's userinfo API
     if (!email) {
-      // You could fetch user info from Google here
-      // For now, return error or use a session-based approach
-      return NextResponse.json(
-        { message: 'User email is required. Please provide email in state parameter.' },
-        { status: 400 }
-      );
+      try {
+        const { google } = await import('googleapis');
+        const oauth2Client = new google.auth.OAuth2();
+        oauth2Client.setCredentials({
+          access_token: accessToken,
+        });
+
+        // Fetch user info from Google
+        const oauth2 = google.oauth2({
+          auth: oauth2Client,
+          version: 'v2',
+        });
+
+        const userInfo = await oauth2.userinfo.get();
+        email = userInfo.data.email;
+
+        if (!email) {
+          throw new Error('Could not retrieve email from Google account');
+        }
+
+        console.log('Retrieved email from Google:', email);
+      } catch (error) {
+        console.error('Error fetching user email from Google:', error);
+        return NextResponse.json(
+          { message: 'Failed to retrieve email from Google account. Please try again.' },
+          { status: 500 }
+        );
+      }
     }
 
     // Update or create user with tokens
@@ -79,14 +107,14 @@ export async function GET(request) {
       { upsert: true, new: true }
     );
 
-    // Redirect to success page or dashboard
+    // Redirect to SEO dashboard with email
     return NextResponse.redirect(
-      `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/joinhere?success=connected`
+      `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/seo?email=${encodeURIComponent(email)}&connected=true`
     );
   } catch (error) {
     console.error('Error in OAuth callback:', error);
     return NextResponse.redirect(
-      `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/joinhere?error=oauth_failed`
+      `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/seo?error=oauth_failed`
     );
   }
 }

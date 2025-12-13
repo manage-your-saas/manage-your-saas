@@ -13,14 +13,16 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email');
 
-    // Generate state parameter (can include email for session tracking)
-    // In production, you should use a secure random string and store it in session
+    // Generate state parameter (optional - can include email for backward compatibility)
+    // If email is provided, include it in state, otherwise let Google provide it
     const state = email ? Buffer.from(email).toString('base64') : null;
 
     // Get the Google OAuth authorization URL
+    // Google will ask user to select their account and grant permissions
     const authUrl = getGoogleAuthUrl(state);
 
     // Redirect user to Google consent screen
+    // Google will show account selection and permission screen
     return NextResponse.redirect(authUrl);
   } catch (error) {
     console.error('Error initiating Google OAuth:', error);

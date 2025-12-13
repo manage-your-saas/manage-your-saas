@@ -43,6 +43,7 @@ export function getGoogleAuthUrl(state = null) {
   // Define the scopes we need for Google Search Console
   const scopes = [
     'https://www.googleapis.com/auth/webmasters.readonly', // Read-only access to Search Console
+    'https://www.googleapis.com/auth/userinfo.email', // Get user's email address
   ];
 
   // Generate the authorization URL

@@ -60,9 +60,9 @@
   Continue with Google
 </a> */}
 
-{/* <a  className=' text-3xl' href=""> */}
- <Link href="/oauth" className="text-3xl">Connect apps</Link>
-{/* </a> */}
+<Link href="/oauth" className="text-3xl text-blue-600 hover:text-blue-800 font-medium underline">
+  Connect apps →
+</Link>
 
 
 

@@ -98,7 +98,21 @@ export default function JoinHere() {
           )}
         </form>
 
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center space-y-3">
+          <div>
+            <button
+              onClick={() => {
+                if (email) {
+                  router.push(`/seo?email=${encodeURIComponent(email)}`);
+                } else {
+                  router.push('/seo');
+                }
+              }}
+              className="text-blue-600 hover:text-blue-800 font-medium block w-full mb-2"
+            >
+              View SEO Dashboard →
+            </button>
+          </div>
           <button
             onClick={() => router.push('/')}
             className="text-blue-600 hover:text-blue-800 font-medium"
