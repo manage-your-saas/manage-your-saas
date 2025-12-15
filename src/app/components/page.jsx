@@ -107,7 +107,7 @@
               </div>
 
               <div>
-                  <Image  className=" border-4 p-2 rounded-lg border-black" src={intergrations}/>
+                  <Image alt='oji'  className=" border-4 p-2 rounded-lg border-black" src={intergrations}/>
               </div>
           </div>
 
