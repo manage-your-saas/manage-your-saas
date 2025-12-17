@@ -1,58 +1,83 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-export async function GET(request) {
+export async function GET(req) {
   try {
-    const code = request.nextUrl.searchParams.get("code");
-    const userId = request.nextUrl.searchParams.get("state");
+    const code = req.nextUrl.searchParams.get("code");
+    const state = req.nextUrl.searchParams.get("state");
 
-    if (!code || !userId) {
+    if (!code || !state) {
       return NextResponse.json(
         { error: "Missing code or state" },
         { status: 400 }
       );
     }
 
-    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        code,
-        client_id: process.env.GOOGLE_CLIENT_ID,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        redirect_uri: process.env.GOOGLE_REDIRECT_URI,
-        grant_type: "authorization_code",
-      }),
-    });
+    // 🔐 Decode state
+    let userId;
+    try {
+      const parsed = JSON.parse(decodeURIComponent(state));
+      userId = parsed.userId;
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid state" },
+        { status: 400 }
+      );
+    }
+
+    // 🔁 Exchange code → tokens
+    const tokenRes = await fetch(
+      "https://oauth2.googleapis.com/token",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          code,
+          client_id: process.env.GOOGLE_CLIENT_ID,
+          client_secret: process.env.GOOGLE_CLIENT_SECRET,
+          redirect_uri: process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI,
+          grant_type: "authorization_code",
+        }),
+      }
+    );
 
     const tokenData = await tokenRes.json();
-
+    
     if (!tokenData.refresh_token) {
       return NextResponse.json(
         { error: "No refresh token returned" },
         { status: 400 }
       );
     }
-
+    
+    console.log(tokenData.refresh_token)
+    // ✅ SERVICE ROLE CLIENT (NO COOKIES)
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
-    // const { data: account, error } = await supabase
-    //   .from("analytics_accounts")
-    //   .select("google_refresh_token, google_property_id")
-    //   .eq("user_id", user.id)
-    //   .single();
-
-    await supabase.from("analytics_accounts").insert({
-      user_id: userId, // UUID string
+    await supabase.from("analytics_accounts").upsert({
+      user_id: userId,
       google_refresh_token: tokenData.refresh_token,
     });
 
-    return NextResponse.redirect("http://localhost:3000/analytics/");
+    await supabase
+  .from("integration_status")
+  .upsert(
+    {
+      user_id: userId,
+      integration: "google_analytics",
+      status: "connected",
+      last_checked: new Date().toISOString(),
+    },
+    { onConflict: "user_id,integration" }
+  );
+
+
+    return NextResponse.redirect(new URL("/analytics", req.url));
   } catch (err) {
-    console.error("GOOGLE CALLBACK ERROR:", err);
+    console.error("OAUTH CALLBACK ERROR:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

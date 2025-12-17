@@ -1,149 +1,129 @@
-// src/app/analytics/page.jsx
+"use client";
 
-export default async function AnalyticsPage() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
-  const res = await fetch(`${baseUrl}/api/google/metrics`, {
-    cache: "no-store",
-  });
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch analytics data");
+export default function AnalyticsPage() {
+  const [properties, setProperties] = useState([]);
+  const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        // 1️⃣ Check login
+        const { data } = await supabase.auth.getUser();
+
+        if (!data?.user) {
+          window.location.href = "/login";
+          return;
+        }
+
+        setUserId(data.user.id);
+
+        // 2️⃣ Check integration + property status
+        const statusRes = await fetch(
+          `/api/google/status?userId=${data.user.id}`
+        );
+        const statusJson = await statusRes.json();
+
+        if (statusJson.connected && statusJson.propertySelected) {
+          // 🔥 Already setup → skip selection
+          window.location.href = "/dashboard/analytics";
+          return;
+        }
+
+        // 3️⃣ Fetch properties
+        const res = await fetch(
+          `/api/google/metrics?userId=${data.user.id}`
+        );
+
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error);
+
+        const props =
+          json.accounts?.flatMap((account) =>
+            account.propertySummaries?.map((p) => ({
+              id: p.property.replace("properties/", ""),
+              name: p.displayName,
+              account: account.displayName,
+            }))
+          ) ?? [];
+
+        setProperties(props);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    load();
+  }, []);
+
+  async function handleSelect(propertyId) {
+    if (!userId) return;
+
+    const res = await fetch("/api/google/select-property", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        propertyId,
+      }),
+    });
+
+    if (!res.ok) {
+      alert("Failed to save property");
+      return;
+    }
+
+    // ✅ Go to metrics dashboard
+    window.location.href = "/dashboard/analytics";
   }
 
-  const data = await res.json();
-  console.log(data)
+  if (loading) return <p className="text-black">Loading properties…</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
 
   return (
-    <div style={{ fontFamily: "var(--font-story-script)" }} className="tracking-wider p-10 min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Google Analytics Overview
-        </h1>
-        <p className="text-gray-600 mt-1">
-          Essential analytics for SaaS founders: Clean & simple.
-        </p>
-      </div>
+    <div className="p-6 space-y-6 text-black max-w-3xl">
+      <h1 className="text-2xl font-bold">
+        Select your Google Analytics Property
+      </h1>
 
-      {/* Metric Cards */}
-      <section>
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          Key Metrics (Last 7 Days)
-        </h2>
+      {properties.length === 0 && (
+        <p>No Google Analytics properties found.</p>
+      )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-          {/* Traffic */}
-          <MetricCard 
-            label="Users" 
-            value={data.users || 0} 
-            desc="Total unique visitors" 
-          />
+      <ul className="space-y-3">
+        {properties.map((prop) => (
+          <li
+            key={prop.id}
+            className="border rounded-lg p-4 flex justify-between items-center"
+          >
+            <div>
+              <p className="font-medium">{prop.name}</p>
+              <p className="text-sm text-gray-500">{prop.account}</p>
+              <p className="text-xs text-gray-400">
+                Property ID: {prop.id}
+              </p>
+            </div>
 
-          {/* Sessions */}
-          <MetricCard 
-            label="Sessions" 
-            value={data.sessions || 0} 
-            desc="Total website sessions" 
-          />
-
-          {/* Pageviews */}
-          <MetricCard 
-            label="Pageviews" 
-            value={data.pageviews || 0} 
-            desc="Total pages viewed" 
-          />
-
-          {/* Engagement */}
-          <MetricCard 
-            label="Avg. Engagement" 
-            value={data.avgEngagement || "0s"} 
-            desc="Average engagement time" 
-          />
-
-          {/* Returning Users */}
-          <MetricCard 
-            label="Returning Users" 
-            value={data.returningUsers || 0} 
-            desc="Users who came back again" 
-          />
-        </div>
-      </section>
-
-      {/* Traffic sources */}
-      <section className="mt-14">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          Top Traffic Sources
-        </h2>
-
-        <div className="bg-white rounded-xl shadow p-6">
-          {data.sources?.length > 0 ? (
-            <table className="w-full text-left">
-              <thead>
-                <tr className="text-gray-500 border-b">
-                  <th className="py-2">Source</th>
-                  <th className="py-2">Users</th>
-                  <th className="py-2">Sessions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.sources.map((src, i) => (
-                  <tr key={i} className="border-b last:border-b-0">
-                    <td className="py-2 font-medium">{src.source}</td>
-                    <td className="py-2">{src.users}</td>
-                    <td className="py-2">{src.sessions}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="text-gray-500">No traffic source data available.</p>
-          )}
-        </div>
-      </section>
-
-      {/* Top pages */}
-      <section className="mt-14">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          Top Pages
-        </h2>
-
-        <div className="bg-white rounded-xl shadow p-6">
-          {data.pages?.length > 0 ? (
-            <table className="w-full text-left">
-              <thead>
-                <tr className="text-gray-500 border-b">
-                  <th className="py-2">Page</th>
-                  <th className="py-2">Views</th>
-                  <th className="py-2">Avg. Engagement</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.pages.map((p, i) => (
-                  <tr key={i} className="border-b last:border-b-0">
-                    <td className="py-2 font-medium">{p.page}</td>
-                    <td className="py-2">{p.views}</td>
-                    <td className="py-2">{p.engagement}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="text-gray-500">No page performance data available.</p>
-          )}
-        </div>
-      </section>
-    </div>
-  );
-}
-
-/* ========== Reusable Metric Card Component ========== */
-function MetricCard({ label, value, desc }) {
-  return (
-    <div className="bg-white rounded-xl shadow p-6 hover:shadow-md transition">
-      <p className="text-gray-500 text-sm">{label}</p>
-      <h3 className="text-3xl font-semibold mt-1">{value}</h3>
-      <p className="text-gray-400 text-xs mt-1">{desc}</p>
+            <button
+              onClick={() => handleSelect(prop.id)}
+              className="px-4 py-2 border rounded hover:bg-black hover:text-white transition"
+            >
+              Use
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

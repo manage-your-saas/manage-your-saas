@@ -199,6 +199,7 @@ client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
 &scope=https://www.googleapis.com/auth/analytics.readonly
 &access_type=offline
 &prompt=consent
+&state=${encodeURIComponent(user.id)}
 `}
   className="bg-amber-400 border-4 border-black p-4 rounded"
 >

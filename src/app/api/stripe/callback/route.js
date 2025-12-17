@@ -83,13 +83,13 @@ export async function GET(request) {
 
     console.log('✅ Successfully saved Stripe account');
     return NextResponse.redirect(
-      new URL('/dashboard?success=stripe_connected', request.url)
+      new URL('/dashboard/stripe?success=stripe_connected', request.url)
     );
 
   } catch (error) {
     console.error('❌ Error in Stripe callback:', error);
     return NextResponse.redirect(
-      new URL(`/dashboard?error=stripe_connection_failed&message=${encodeURIComponent(error.message)}`, request.url)
+      new URL(`/dashboard/stripe?error=stripe_connection_failed&message=${encodeURIComponent(error.message)}`, request.url)
     );
   }
 }
