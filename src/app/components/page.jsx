@@ -15,42 +15,7 @@
     
     return (
       <div style={{ fontFamily: "var(--font-story-script)" }} className="min-h-screen bg-[#f8f8f8] text-gray-900 font-sans">
-        <nav className="w-full bg-white border-b border-gray-700 border-2  fixed top-0 left-0 z-50">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6  lg:px-8">
-      <div className="flex justify-between h-16">
-        {/* Logo */}
-        <div className="flex items-center">
-          <Image width={30} height={30} src={logo}/><span className="text-xl font-bold text-gray-900"> ManageYourSaaS</span>
-        </div>
-
         
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-8">
-          <a href="#features" className="text-xl xl:text-1xl lg:text-2xl text-gray-600 hover:text-gray-900 transition-colors">Features</a>
-          <a href="#pricing" className="text-xl xl:text-1xl lg:text-2xl text-gray-600 hover:text-gray-900 transition-colors">Pricing</a>
-          <a href="#about" className="text-xl xl:text-1xl lg:text-2xl text-gray-600 hover:text-gray-900 transition-colors">About</a>
-        </div>
-        
-        {/* Auth Buttons */}
-        <div className="flex items-center space-x-4">
-          <a 
-            href="https://discord.gg/3nTT9HnjJR" 
-            className="text-lg border-2 bg-violet-400 font-bold lg:text-1xl xl:text-2xl text-black border-black hover:text-gray-900 px-3 py-2 rounded-md"
-          >
-            Discord
-          </a>
-            <a 
-            href='https://joe156.app.n8n.cloud/form/0eed386d-7c72-46d2-97f4-4ed4fb8076c2'
-      
-      className="text-lg lg:text-1xl xl:text-2xl p-3 bg-black text-white rounded font-bold hover:opacity-90 transition"
-    >
-      Get Started
-    </a>
-        </div>
-      </div>
-    </div>
-  </nav>
-
   <main className="mb-20"></main>
 
   {/* <a 
@@ -61,7 +26,7 @@
 </a> */}
 
 {/* <a  className=' text-3xl' href=""> */}
- <Link href="/oauth" className="text-3xl">Connect apps</Link>
+ {/* <Link href="/oauth" className="text-3xl">Connect apps</Link> */}
 {/* </a> */}
 
 

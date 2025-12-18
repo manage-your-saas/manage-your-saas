@@ -8,7 +8,19 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
-    
+    const state = searchParams.get('state');
+
+    if (!state) {
+      throw new Error('State parameter is missing');
+    }
+
+    const { userId } = JSON.parse(decodeURIComponent(state));
+
+    if (!userId) {
+      throw new Error('User ID is missing from state');
+    }
+
+        
     if (!code) {
       return NextResponse.json(
         { error: 'Authorization code is required' },
@@ -58,29 +70,45 @@ export async function GET(request) {
       // Update existing account
       console.log('🔄 Updating existing Stripe account');
       result = await supabaseAdmin
-        .from(STRIPE_ACCOUNTS_TABLE)  // Fixed: Using the correct constant name
+        .from(STRIPE_ACCOUNTS_TABLE)
         .update({
           access_token,
-          refresh_token
+          refresh_token,
+          user_id: userId
         })
         .eq('stripe_account_id', stripe_user_id);
     } else {
       // Insert new account
       console.log('➕ Creating new Stripe account');
       result = await supabaseAdmin
-        .from(STRIPE_ACCOUNTS_TABLE)  // Fixed: Using the correct constant name
+        .from(STRIPE_ACCOUNTS_TABLE)
         .insert([{
           stripe_account_id: stripe_user_id,
           access_token,
-          refresh_token
+          refresh_token,
+          user_id: userId
         }]);
     }
 
     if (result.error) {
-      console.error('❌ Database error:', result.error);
+      console.error('❌ Database error saving stripe_account:', result.error);
       throw new Error(`Database error: ${result.error.message}`);
     }
 
+    // Upsert into user_integrations table
+    const { error: integrationError } = await supabaseAdmin
+      .from('user_integrations')
+      .upsert(
+        { user_id: userId, integration: 'stripe', status: 'connected', last_checked: new Date().toISOString() },
+        { onConflict: 'user_id,integration' }
+      );
+
+    if (integrationError) {
+      console.error('❌ Database error saving user_integration:', integrationError);
+      throw new Error(`Database error: ${integrationError.message}`);
+    }
+
+    
     console.log('✅ Successfully saved Stripe account');
     return NextResponse.redirect(
       new URL('/dashboard/stripe?success=stripe_connected', request.url)
