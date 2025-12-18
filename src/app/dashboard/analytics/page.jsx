@@ -97,19 +97,12 @@ function DateRangeSelector({ range, setRange }) {
 
 function LoadingState() {
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-[1400px] mx-auto px-6 py-8">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-64"></div>
-          <div className="grid grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-100 rounded-lg"></div>
-            ))}
-          </div>
-          <div className="h-80 bg-gray-100 rounded-lg"></div>
+    <div style={{ fontFamily: "var(--font-story-script)" }}  className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-xl">Loading Analytics data...</p>
         </div>
       </div>
-    </div>
   );
 }
 
@@ -155,25 +148,27 @@ function PerformanceSection({ metrics }) {
 }
 
 function Integrations({ integrationStatus, googleAuthUrl, googleSearchAuthUrl, stripeAuthUrl }) {
-  const buttonStyle = "px-6 py-3 rounded-lg border-2 border-black text-white transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 active:scale-95";
+  const buttonStyle = "px-6 py-3 rounded-lg border-0 border-black text-white transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 active:scale-95";
 
   return (
     <div className="flex justify-center gap-4 mb-8">
       <a
         href={integrationStatus.stripe === 'connected' ? '/dashboard/stripe' : stripeAuthUrl}
-        className={`${buttonStyle} tracking-wider text-3xl bg-violet-500 hover:bg-violet-600 focus:ring-violet-300`}
+        className={`${buttonStyle} tracking-wider text-3xl bg-violet-400 hover:bg-violet-600 focus:ring-violet-300`}
       >
         {integrationStatus.stripe === 'connected' ? 'View Stripe' : 'Connect Stripe'}
       </a>
       <a
         href={integrationStatus.google_search_console === 'connected' ? '/dashboard/seo' : googleSearchAuthUrl}
-        className={`${buttonStyle} tracking-wider text-3xl bg-blue-500 hover:bg-blue-600 focus:ring-blue-300`}
+        onClick={() => setActive(true)
+        }
+        className={`${buttonStyle} text-white tracking-wider text-3xl bg-blue-400 hover:bg-blue-600 focus:ring-blue-300`}
       >
         {integrationStatus.google_search_console === 'connected' ? 'View Search Console' : 'Connect Search Console'}
       </a>
       <a
         href={integrationStatus.google_analytics === 'connected' ? '/dashboard/analytics' : googleAuthUrl}
-        className={`${buttonStyle} tracking-wider text-3xl  bg-amber-500 hover:bg-amber-600 focus:ring-amber-300`}
+        className={`${buttonStyle} tracking-wider text-3xl  bg-amber-400 hover:bg-amber-600 focus:ring-amber-300`}
       >
         {integrationStatus.google_analytics === 'connected' ? 'View Google Analytics' : 'Connect Google Analytics'}
       </a>
@@ -307,7 +302,7 @@ export default function Dashboard() {
   const stripeAuthUrl = user ? `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID}&scope=read_write&user_id=${user.id}` : '#';
 
   return (
-    <div style={{ fontFamily: "var(--font-story-script)" }} className="min-h-screen bg-white">
+    <div style={{ fontFamily: "var(--font-story-script)" }} className="mt-16 min-h-screen bg-white">
       <main className="max-w-[1800px] mx-auto px-6 py-8">
         <Integrations 
           integrationStatus={integrationStatus} 

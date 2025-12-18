@@ -1,7 +1,37 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import MetricsChart from '@/components/MetricsChart';
+
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+function Integrations({ integrationStatus, googleAuthUrl, googleSearchAuthUrl, stripeAuthUrl }) {
+  const buttonStyle = "px-6 py-3 rounded-lg border-0 border-black text-white transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 active:scale-95";
+
+  return (
+    <div className="flex justify-center gap-4 mb-8">
+      <a
+        href={integrationStatus.stripe === 'connected' ? '/dashboard/stripe' : stripeAuthUrl}
+        className={`${buttonStyle} tracking-wider text-3xl bg-violet-400 hover:bg-violet-600 focus:ring-violet-300`}
+      >
+        {integrationStatus.stripe === 'connected' ? 'View Stripe' : 'Connect Stripe'}
+      </a>
+      <a
+        href={integrationStatus.google_search_console === 'connected' ? '/dashboard/seo' : googleSearchAuthUrl}
+        className={`${buttonStyle} text-white tracking-wider text-3xl bg-blue-400 hover:bg-blue-600 focus:ring-blue-300`}
+      >
+        {integrationStatus.google_search_console === 'connected' ? 'View Search Console' : 'Connect Search Console'}
+      </a>
+      <a
+        href={integrationStatus.google_analytics === 'connected' ? '/dashboard/analytics' : googleAuthUrl}
+        className={`${buttonStyle} tracking-wider text-3xl  bg-amber-400 hover:bg-amber-600 focus:ring-amber-300`}
+      >
+        {integrationStatus.google_analytics === 'connected' ? 'View Google Analytics' : 'Connect Google Analytics'}
+      </a>
+    </div>
+  );
+}
 
 export default function Stripe() {
   const [loading, setLoading] = useState(true);
@@ -9,6 +39,7 @@ export default function Stripe() {
   const [analytics, setAnalytics] = useState(null);
   const [subscriptions, setSubscriptions] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [user,setUser] = useState(null);
   const [invoices, setInvoices] = useState([]);
   const [metrics, setMetrics] = useState({
     mrr: 0,
@@ -20,6 +51,8 @@ export default function Stripe() {
     totalRevenue: 0
   });
   const [activeTab, setActiveTab] = useState('overview');
+  // const [user, setUser] = useState(null);
+  const [integrationStatus, setIntegrationStatus] = useState({});
 
   useEffect(() => {
     fetchData();
@@ -28,13 +61,35 @@ export default function Stripe() {
   const fetchData = async () => {
     try {
       setLoading(true);
+
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth?.user) {
+        setError("User not logged in");
+        setLoading(false);
+        return;
+      }
+      setUser(auth.user);
+      
+      // Check if SEO is connected
+      const { data: integrationStatus } = await supabase
+        .from('user_integrations')
+        .select('status')
+        .eq('user_id', auth.user.id)
+        .eq('integration', 'google_search_console')
+        .single();
+
+      // If SEO is not connected, redirect to SEO dashboard
+      if (!integrationStatus || integrationStatus.status !== 'connected') {
+        window.location.href = '/dashboard/seo';
+        return;
+      }
       
       // Fetch all data in parallel
       const [analyticsRes, customersRes, subscriptionsRes, invoicesRes] = await Promise.all([
-        fetch('/api/stripe/analytics'),
-        fetch('/api/stripe/customers'),
-        fetch('/api/stripe/subscriptions'),
-        fetch('/api/stripe/invoices')
+        fetch(`/api/stripe/analytics?userId=${auth.user.id}`),
+        fetch(`/api/stripe/customers?userId=${auth.user.id}`),
+        fetch(`/api/stripe/subscriptions?userId=${auth.user.id}`),
+        fetch(`/api/stripe/invoices?userId=${auth.user.id}`)
       ]);
 
       const [analyticsData, customersData, subscriptionsData, invoicesData] = await Promise.all([
@@ -43,6 +98,24 @@ export default function Stripe() {
         subscriptionsRes.json(),
         invoicesRes.json()
       ]);
+
+      // Fetch GA Status
+      const gaStatusRes = await fetch(`/api/google/status?userId=${auth.user.id}`);
+      const gaStatusData = await gaStatusRes.json();
+      if (gaStatusRes.ok && gaStatusData.connected) {
+        setIntegrationStatus(prev => ({...prev, google_analytics: 'connected'}));
+      }
+
+      // Fetch SC Status
+      const scStatusRes = await fetch(`/api/search-console/status?userId=${auth.user.id}`);
+      const scStatusData = await scStatusRes.json();
+      if (scStatusRes.ok && scStatusData.siteUrl) {
+        setIntegrationStatus(prev => ({...prev, google_search_console: 'connected'}));
+      }
+
+      if (analyticsRes.ok && analyticsData) {
+        setIntegrationStatus(prev => ({...prev, stripe: 'connected'}));
+      }
 
       // Log the data for debugging
       console.log('Subscriptions:', subscriptionsData);
@@ -82,11 +155,43 @@ export default function Stripe() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div style={{ fontFamily: "var(--font-story-script)" }}  className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-xl">Loading Revenue data...</p>
+        </div>
       </div>
     );
   }
+
+  const state = user ? encodeURIComponent(JSON.stringify({ userId: user.id })) : '';
+
+  const googleAuthUrl =
+    `https://accounts.google.com/o/oauth2/v2/auth` +
+    `?client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}` +
+    `&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_REDIRECT_URI)}` +
+    `&response_type=code` +
+    `&scope=https://www.googleapis.com/auth/analytics.readonly` +
+    `&access_type=offline` +
+    `&prompt=consent` +
+    `&state=${state}`;
+
+  const googleSearchAuthUrl =
+    "https://accounts.google.com/o/oauth2/v2/auth" +
+    `?client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}` +
+    `&redirect_uri=${encodeURIComponent(
+      process.env.NEXT_PUBLIC_GOOGLE_SEARCH_CONSOLE_REDIRECT_URI
+    )}` +
+    `&response_type=code` +
+    `&scope=${encodeURIComponent(
+      "https://www.googleapis.com/auth/webmasters.readonly"
+    )}` +
+    `&access_type=offline` +
+    `&prompt=consent` +
+    `&include_granted_scopes=true` +
+    `&state=${state}`;
+
+  const stripeAuthUrl = user ? `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID}&scope=read_write&state=${state}` : '#';
 
   if (error) {
     return (
@@ -179,40 +284,15 @@ export default function Stripe() {
   };
 
   return (
-    <div style={{ fontFamily: "var(--font-story-script)" }} className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div style={{ fontFamily: "var(--font-story-script)" }} className="mt-16 min-h-screen bg-gray-50 p-4 md:p-8">
 
       <div>
-        <div className='text-3xl border-2 border-black flex flex-row gap-4 justify-center items-center p-4' style={{ fontFamily: "var(--font-story-script)" }}>    
-            <a
-  href={`https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${process.env.STRIPE_CLIENT_ID}&scope=read_write`}
-  className="p-4 border-4 border-black  bg-violet-500 text-white rounded"
->
-  Connect Stripe
-</a>
-
-  <a className='bg-amber-500 border-4 border-black p-4 rounded' href="">Connect to Search Console</a>
-  <a
-  href={`https://accounts.google.com/o/oauth2/v2/auth?
-client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
-&redirect_uri=${process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI}
-&response_type=code
-&scope=https://www.googleapis.com/auth/analytics.readonly
-&access_type=offline
-&prompt=consent
-&state=${encodeURIComponent(user.id)}
-`}
-  className="bg-amber-400 border-4 border-black p-4 rounded"
->
-  Connect Google Analytics
-</a>
-
-
-  <a className='bg-amber-700 border-4 border-black p-4 rounded' href="">Connect to Reddit</a>
-  <a className='bg-blue-500 border-4 border-black p-4 rounded' href="">Connect to Linkedin</a>
-  <a className='bg-black p-4 border-4 border-black rounded' href="">Connect to X</a>
-  <a className='bg-green-500 border-4 border-black p-4 rounded' href="">Connect to Mail</a>
-
-  </div>
+        <Integrations 
+          integrationStatus={integrationStatus} 
+          googleAuthUrl={googleAuthUrl} 
+          googleSearchAuthUrl={googleSearchAuthUrl} 
+          stripeAuthUrl={stripeAuthUrl} 
+        />
   </div>
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
@@ -242,28 +322,7 @@ client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
             </div>
           </div>
 
-          <div className="fixed left-8 top-1/2 -translate-y-1/2 flex flex-col gap-6">
-  <a
-    href="/dashboard/stripe"
-    className="px-6 text-center py-6 text-3xl border-4 border-black bg-violet-500 text-white rounded-xl"
-  >
-    Connect Stripe
-  </a>
-
-  <a
-    href="/dashboard/seo"
-    className="px-6 text-center py-6 text-3xl border-4 border-black bg-blue-500 text-white rounded-xl"
-  >
-    Connect Search Console
-  </a>
-
-  <a
-    href="/dashboard/analytics"
-    className="px-6 text-center py-6 text-3xl border-4 border-black bg-amber-500 text-white rounded-xl"
-  >
-    Connect Google Analytics
-  </a>
-</div>
+          
 
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center">
