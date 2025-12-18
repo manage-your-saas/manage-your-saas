@@ -242,6 +242,29 @@ client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
             </div>
           </div>
 
+          <div className="fixed left-8 top-1/2 -translate-y-1/2 flex flex-col gap-6">
+  <a
+    href="/dashboard/stripe"
+    className="px-6 text-center py-6 text-3xl border-4 border-black bg-violet-500 text-white rounded-xl"
+  >
+    Connect Stripe
+  </a>
+
+  <a
+    href="/dashboard/seo"
+    className="px-6 text-center py-6 text-3xl border-4 border-black bg-blue-500 text-white rounded-xl"
+  >
+    Connect Search Console
+  </a>
+
+  <a
+    href="/dashboard/analytics"
+    className="px-6 text-center py-6 text-3xl border-4 border-black bg-amber-500 text-white rounded-xl"
+  >
+    Connect Google Analytics
+  </a>
+</div>
+
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center">
               <div className="p-3 rounded-lg bg-green-50 text-green-600">
@@ -412,7 +435,7 @@ client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
                     <tr key={sub.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                          <div className="shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
                             <span className="text-indigo-600 font-medium">
                               {customerName[0].toUpperCase()}
                             </span>

@@ -49,12 +49,27 @@ export default function  Dashboard() {
 const googleAuthUrl =
   `https://accounts.google.com/o/oauth2/v2/auth` +
   `?client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}` +
-  `&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI)}` +
+  `&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_REDIRECT_URI)}` +
   `&response_type=code` +
   `&scope=https://www.googleapis.com/auth/analytics.readonly` +
   `&access_type=offline` +
   `&prompt=consent` +
   `&state=${state}`;
+
+const googleSearchAuthUrl =
+  "https://accounts.google.com/o/oauth2/v2/auth" +
+  `?client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}` +
+  `&redirect_uri=${encodeURIComponent(
+    process.env.NEXT_PUBLIC_GOOGLE_SEARCH_CONSOLE_REDIRECT_URI
+  )}` +
+  `&response_type=code` +
+  `&scope=${encodeURIComponent(
+    "https://www.googleapis.com/auth/webmasters.readonly"
+  )}` +
+  `&access_type=offline` +
+  `&prompt=consent` +
+  `&include_granted_scopes=true` +
+  `&state=${encodeURIComponent(state)}`;
 
 
   return (
@@ -69,7 +84,7 @@ const googleAuthUrl =
 
         <h1 className='bg-black p-5'>{user.id}</h1>
 
-        <a className='bg-amber-500 border-4 border-black p-4 rounded' href="">
+        <a href={googleSearchAuthUrl} className='bg-amber-500 border-4 border-black p-4 rounded'>
           Connect to Search Console
         </a>
         

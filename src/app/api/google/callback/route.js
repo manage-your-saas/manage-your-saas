@@ -1,3 +1,4 @@
+// api/google/callback/route.js
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -16,8 +17,7 @@ export async function GET(req) {
     // 🔐 Decode state
     let userId;
     try {
-      const parsed = JSON.parse(decodeURIComponent(state));
-      userId = parsed.userId;
+      userId = JSON.parse(decodeURIComponent(state)).userId;
     } catch {
       return NextResponse.json(
         { error: "Invalid state" },
@@ -26,58 +26,71 @@ export async function GET(req) {
     }
 
     // 🔁 Exchange code → tokens
-    const tokenRes = await fetch(
-      "https://oauth2.googleapis.com/token",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          code,
-          client_id: process.env.GOOGLE_CLIENT_ID,
-          client_secret: process.env.GOOGLE_CLIENT_SECRET,
-          redirect_uri: process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI,
-          grant_type: "authorization_code",
-        }),
-      }
-    );
+    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_REDIRECT_URI,
+        grant_type: "authorization_code",
+      }),
+    });
 
     const tokenData = await tokenRes.json();
-    
-    if (!tokenData.refresh_token) {
-      return NextResponse.json(
-        { error: "No refresh token returned" },
-        { status: 400 }
-      );
-    }
-    
-    console.log(tokenData.refresh_token)
-    // ✅ SERVICE ROLE CLIENT (NO COOKIES)
+
+    // 🔑 Service role client
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
-    await supabase.from("analytics_accounts").upsert({
-      user_id: userId,
-      google_refresh_token: tokenData.refresh_token,
-    });
+    // 🔍 Check existing token
+    const { data: existing } = await supabase
+      .from("analytics_accounts")
+      .select("google_refresh_token")
+      .eq("user_id", userId)
+      .single();
 
-    await supabase
-  .from("integration_status")
-  .upsert(
-    {
-      user_id: userId,
-      integration: "google_analytics",
-      status: "connected",
-      last_checked: new Date().toISOString(),
-    },
-    { onConflict: "user_id,integration" }
-  );
+    // ✅ Decide final refresh token
+    const refreshToken =
+      tokenData.refresh_token || existing?.google_refresh_token;
 
+    if (!refreshToken) {
+      return NextResponse.json(
+        {
+          error: "Google Analytics authorization incomplete",
+          reason:
+            "No refresh token returned and none exists in database. User must revoke access and reconnect.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // 💾 Upsert analytics account
+    await supabase.from("analytics_accounts").upsert(
+      {
+        user_id: userId,
+        google_refresh_token: refreshToken,
+      },
+      { onConflict: "user_id" }
+    );
+
+    // 💾 Integration status
+    await supabase.from("integration_status").upsert(
+      {
+        user_id: userId,
+        integration: "google_analytics",
+        status: "connected",
+        last_checked: new Date().toISOString(),
+      },
+      { onConflict: "user_id,integration" }
+    );
 
     return NextResponse.redirect(new URL("/analytics", req.url));
   } catch (err) {
     console.error("OAUTH CALLBACK ERROR:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: "OAuth failed" }, { status: 500 });
   }
 }

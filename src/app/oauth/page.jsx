@@ -20,7 +20,6 @@ export default async function oauth() {
   Connect Stripe
 </a>
 
-  <a className='bg-amber-500 border-4 border-black p-4 rounded' href="">Connect to Search Console</a>
   
 <a
   href={`https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI)}&response_type=code&scope=https://www.googleapis.com/auth/analytics.readonly&access_type=offline&prompt=consent&state=${encodeURIComponent(JSON.stringify({ userId: user.id }))}`}

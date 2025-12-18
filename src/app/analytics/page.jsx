@@ -88,7 +88,9 @@ export default function AnalyticsPage() {
     window.location.href = "/dashboard/analytics";
   }
 
-  if (loading) return <p className="text-black">Loading properties…</p>;
+  if (loading) return <p>Loading analytics properties...</p>;
+
+
   if (error) return <p className="text-red-500">{error}</p>;
 
   return (

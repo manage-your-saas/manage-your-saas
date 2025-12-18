@@ -2,11 +2,74 @@ import { NextResponse } from "next/server";
 import { google } from "googleapis";
 import { createClient } from "@supabase/supabase-js";
 
+function getDates(range) {
+  const now = new Date();
+  const formatDate = (date) => date.toISOString().split('T')[0];
+  let startDate, endDate = formatDate(now);
+
+  switch (range) {
+    case 'today':
+      startDate = formatDate(now);
+      break;
+    case 'yesterday':
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+      startDate = formatDate(yesterday);
+      endDate = formatDate(yesterday);
+      break;
+    case 'thisWeek':
+      const firstDayOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+      startDate = formatDate(firstDayOfWeek);
+      break;
+    case 'lastWeek':
+      const lastWeekEndDate = new Date();
+      lastWeekEndDate.setDate(now.getDate() - now.getDay() - 1);
+      const lastWeekStartDate = new Date(lastWeekEndDate);
+      lastWeekStartDate.setDate(lastWeekEndDate.getDate() - 6);
+      startDate = formatDate(lastWeekStartDate);
+      endDate = formatDate(lastWeekEndDate);
+      break;
+    case 'thisMonth':
+      startDate = formatDate(new Date(now.getFullYear(), now.getMonth(), 1));
+      break;
+    case 'lastMonth':
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      startDate = formatDate(lastMonth);
+      endDate = formatDate(new Date(now.getFullYear(), now.getMonth(), 0));
+      break;
+    case 'quarterToDate':
+      const quarter = Math.floor(now.getMonth() / 3);
+      startDate = formatDate(new Date(now.getFullYear(), quarter * 3, 1));
+      break;
+    case 'thisYear':
+      startDate = formatDate(new Date(now.getFullYear(), 0, 1));
+      break;
+    case '7daysAgo':
+    case '28daysAgo':
+    case '30daysAgo':
+    case '90daysAgo':
+      startDate = range;
+      endDate = 'today';
+      break;
+    default:
+      startDate = '7daysAgo';
+      endDate = 'today';
+  }
+  return { startDate, endDate };
+}
+
 export async function GET(req) {
+  const userId = req.nextUrl.searchParams.get("userId");
+
+  // ✅ Supabase service role (no auth cookies)
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+
   try {
-    const userId = req.nextUrl.searchParams.get("userId");
-    const startDate =
-      req.nextUrl.searchParams.get("startDate") || "7daysAgo";
+    const range = req.nextUrl.searchParams.get("startDate") || "7daysAgo";
+    const { startDate, endDate } = getDates(range);
 
     if (!userId) {
       return NextResponse.json(
@@ -14,12 +77,6 @@ export async function GET(req) {
         { status: 400 }
       );
     }
-
-    // ✅ Supabase service role (no auth cookies)
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    );
 
     // 🔐 Get GA tokens + selected property
     const { data, error } = await supabase
@@ -51,56 +108,63 @@ export async function GET(req) {
     });
 
     // 📊 Fetch metrics
-    const res = await analytics.properties.runReport({
-      property: `properties/${data.google_property_id}`,
-      requestBody: {
-        dateRanges: [{ startDate, endDate: "today" }],
-        metrics: [
-          { name: "activeUsers" },
-          { name: "newUsers" },
-          { name: "sessions" },
-          { name: "screenPageViews" },
-          { name: "engagementRate" },
-          { name: "averageSessionDuration" },
-        ],
-      },
-    });
+    const dimension = req.nextUrl.searchParams.get("dimension");
 
-    const row = res.data.rows?.[0];
+    if (dimension) {
+      // Time-series data for chart
+      const res = await analytics.properties.runReport({
+        property: `properties/${data.google_property_id}`,
+        requestBody: {
+          dateRanges: [{ startDate, endDate }],
+          dimensions: [{ name: dimension }],
+          metrics: [{ name: "activeUsers" }, { name: "newUsers" }],
+        },
+      });
 
-    return NextResponse.json({
-      success: true,
-      metrics: {
-        activeUsers: row?.metricValues?.[0]?.value ?? "0",
-        newUsers: row?.metricValues?.[1]?.value ?? "0",
-        sessions: row?.metricValues?.[2]?.value ?? "0",
-        pageViews: row?.metricValues?.[3]?.value ?? "0",
-        engagementRate:
-          ((row?.metricValues?.[4]?.value || 0) * 100).toFixed(1) + "%",
-        avgSessionDuration:
-          Math.round(row?.metricValues?.[5]?.value || 0) + "s",
-      },
-    });
+      const rows = res.data.rows?.map(row => ({
+        keys: [row.dimensionValues[0].value],
+        clicks: parseFloat(row.metricValues[0].value ?? "0"), // Using activeUsers as clicks for now
+        impressions: parseFloat(row.metricValues[1].value ?? "0"), // Using newUsers as impressions
+      })) || [];
 
-    
+      return NextResponse.json({ success: true, rows });
+
+    } else {
+      // Summary data for metric cards
+      const res = await analytics.properties.runReport({
+        property: `properties/${data.google_property_id}`,
+        requestBody: {
+          dateRanges: [{ startDate, endDate }],
+          metrics: [
+            { name: "activeUsers" },
+            { name: "newUsers" },
+            { name: "sessions" },
+            { name: "screenPageViews" },
+            { name: "engagementRate" },
+            { name: "averageSessionDuration" },
+          ],
+        },
+      });
+
+      const row = res.data.rows?.[0];
+
+      return NextResponse.json({
+        success: true,
+        metrics: {
+          activeUsers: parseFloat(row?.metricValues?.[0]?.value ?? "0"),
+          newUsers: parseFloat(row?.metricValues?.[1]?.value ?? "0"),
+          sessions: parseFloat(row?.metricValues?.[2]?.value ?? "0"),
+          pageViews: parseFloat(row?.metricValues?.[3]?.value ?? "0"),
+          engagementRate: parseFloat(row?.metricValues?.[4]?.value ?? "0"),
+          avgSessionDuration: parseFloat(row?.metricValues?.[5]?.value ?? "0"),
+        },
+      });
+    }
   } catch (err) {
-  if (err.message?.includes("invalid_grant")) {
-    await supabase
-      .from("integration_status")
-      .update({
-        status: "expired",
-        last_checked: new Date().toISOString(),
-      })
-      .eq("user_id", userId)
-      .eq("integration", "google_analytics");
-
+    console.error("Metrics API error:", err);
     return NextResponse.json(
-      { reconnect: true },
-      { status: 401 }
+      { error: "Failed to load analytics data" },
+      { status: 500 }
     );
   }
-
-  throw err;
-}
-
 }
