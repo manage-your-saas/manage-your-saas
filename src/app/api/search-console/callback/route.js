@@ -67,16 +67,49 @@ export async function GET(req) {
       process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
-   await supabase
-  .from("search_console_accounts")
-  .upsert(
-    {
-      user_id:userId,
-      google_refresh_token: tokenData.refresh_token,
-    },
-    { onConflict: "user_id" }
-  );
+    // 🔍 Fetch Search Console sites
+    const sitesRes = await fetch(
+      "https://www.googleapis.com/webmasters/v3/sites",
+      {
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`,
+        },
+      }
+    );
 
+    const sitesData = await sitesRes.json();
+
+    if (!sitesData.siteEntry || sitesData.siteEntry.length === 0) {
+      return NextResponse.json(
+        { error: "No Search Console properties found" },
+        { status: 400 }
+      );
+    }
+
+    // Extract site URLs and filter out any undefined or invalid entries
+    const siteUrls = sitesData.siteEntry
+      .map((site) => site.siteUrl)
+      .filter(Boolean);
+
+    console.log("SITE URLS:", siteUrls);
+
+    // Store the first site as selected by default
+    const defaultSelectedSite = siteUrls.length > 0 ? siteUrls[0] : null;
+
+    // Update or insert the account with available sites and selected site
+    await supabase
+      .from("search_console_accounts")
+      .upsert(
+        {
+          user_id: userId,
+          google_refresh_token: tokenData.refresh_token,
+          available_sites: siteUrls,
+          site_url: defaultSelectedSite,  // Keep for backward compatibility
+          selected_site: defaultSelectedSite
+        },
+        { onConflict: "user_id" }
+      )
+      .eq("user_id", userId);
 
 
     // 🔄 Update integration status
