@@ -8,10 +8,30 @@
   import { FiSun, FiMoon } from 'react-icons/fi'; // You'll need to install react-icons
   import { useRouter } from 'next/navigation';
   import Link  from 'next/link'
+  import { createClient } from '@supabase/supabase-js';
 
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
   export default function App() {
       const router = useRouter();
+      const [user, setUser] = useState(null);
+      
+      useEffect(() => {
+        const fetchUser = async () => {
+          const { data } = await supabase.auth.getUser();
+          setUser(data.user);
+        };
+    
+        fetchUser();
+      }, []);
+    
+      const handleGetStarted = () => {
+        if (user) {
+          router.push('/dashboard');
+        } else {
+          router.push('/signup');
+        }
+      };
     
     return (
       <div style={{ fontFamily: "var(--font-story-script)" }} className="min-h-screen bg-[#f8f8f8] text-gray-900 font-sans">
@@ -47,13 +67,13 @@
             </p>
             {/* CTA Buttons - Centered */}
             <div className="flex items-center justify-center gap-4 mb-3">
-              <a 
-          href='https://joe156.app.n8n.cloud/form/0eed386d-7c72-46d2-97f4-4ed4fb8076c2'
+              <button
+          onClick={handleGetStarted}
     
     className="text-lg lg:text-1xl xl:text-2xl p-3 bg-black text-white rounded font-bold hover:opacity-90 transition"
   >
     Get Started
-  </a>
+  </button>
               <button className="text-lg lg:text-1xl xl:text-2xl p-3 bg-gray-800 text-white rounded font-bold hover:opacity-90 transition">
                 Contact us 
               </button>

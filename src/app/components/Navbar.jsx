@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
+
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 
@@ -25,7 +26,7 @@ export default function Navbar() {
 
   const handleGetStarted = () => {
     if (user) {
-      router.push('/dashboard/seo');
+      router.push('/dashboard');
     } else {
       router.push('/signup');
     }
@@ -40,10 +41,10 @@ export default function Navbar() {
             <span className="text-xl font-bold text-gray-900"> ManageYourSaaS</span>
           </div>
           <div className="hidden md:flex items-center space-x-8">
-            <a href="/" className="text-xl xl:text-1xl lg:text-2xl text-gray-600 hover:text-gray-900 transition-colors">Home</a>
-            <a href="#features" className="text-xl xl:text-1xl lg:text-2xl text-gray-600 hover:text-gray-900 transition-colors">Features</a>
-            <Link href="/pricing" className="text-xl xl:text-1xl lg:text-2xl text-gray-600 hover:text-gray-900 transition-colors">Pricing</Link>
-            <a href="#about" className="text-xl xl:text-1xl lg:text-2xl text-gray-600 hover:text-gray-900 transition-colors">About</a>
+            <a href="/" className="text-xl underline xl:text-1xl lg:text-2xl text-gray-600 hover:text-gray-900 transition-colors">Home</a>
+            <Link href="/pricing" className="text-xl underline xl:text-1xl lg:text-2xl text-gray-600 hover:text-gray-900 transition-colors">Pricing</Link>
+            <a href="/login" className="text-xl xl:text-1xl underline lg:text-2xl text-gray-800 hover:text-gray-900 transition-colors">Login</a>
+            <a href="/signup" className="text-xl xl:text-1xl underline lg:text-2xl text-gray-800 hover:text-gray-900 transition-colors">Signup</a>
           </div>
           <div className="flex items-center space-x-4">
             <a 
