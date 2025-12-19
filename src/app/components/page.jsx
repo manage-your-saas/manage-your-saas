@@ -37,13 +37,13 @@
           {/* TOP SECTION - Centered Headline and CTAs */}
           <div className="text-center mb-16">
             <h1  className="text-5xl lg:text-7xl xl:text-8xl font-bold text-gray-900 mb-4 leading-tight">
-              <span className="text-black">"One dashboard"  to manage</span>
+              <span className="text-black">One dashboard to manage</span>
               <br />
               <span className="text-gray-800"> your <span className="font-bold">entire SaaS !</span></span>
             </h1>
             
             <p className="text-1xl lg:text-2xl xl:text-3xl text-gray-700 max-w-3xl mx-auto mb-8">
-              Stop switching between <span className="font-bold text-orange-600">Reddit</span>, <span className="font-bold text-blue-700">LinkedIn</span>, <span className="font-bold text-black">X</span>, <span className="font-bold text-amber-800">Google Analytics</span>, <span className="font-bold text-yellow-600">Search Console</span>, and <span className="font-bold text-violet-700">Stripe</span> just to understand your own business. <span className="font-bold"> <br /> Get everything you need — social reach, SEO, traffic, signups, and revenue — in one simple place.</span>
+              Stop switching between  <span className="font-bold text-amber-800">Google Analytics</span>, <span className="font-bold text-yellow-600">Search Console</span>, and <span className="font-bold text-violet-700">Stripe</span> <span className="font-bold text-orange-600">Reddit</span>, <span className="font-bold text-blue-700">LinkedIn</span>, <span className="font-bold text-black">X</span>, just to understand your own business. <span className="font-bold"> <br /> Get everything you need — social reach, SEO, traffic, signups, and revenue — in one simple place.</span>
             </p>
             {/* CTA Buttons - Centered */}
             <div className="flex items-center justify-center gap-4 mb-3">
@@ -95,7 +95,10 @@
                     </svg>
                   </div>
                   <div>
-                    <h3 className=" text-1xl lg:text-2xl xl:text-3xl font-semibold text-gray-900 mb-2">Social Media</h3>
+                    <div className='flex flex-row justify-between items-center'>
+                      <h3 className=" text-1xl lg:text-2xl xl:text-3xl font-semibold text-gray-900 mb-2">Social Media</h3>
+                      <p className='text-sm bg-amber-200 mb-3 p-1 text-amber-600 rounded-2xl'>Coming Soon</p>
+                    </div>
                     <p className="text-gray-600 text-sm">
                       Post, schedule, a track Reddit & Linkedin from one dashboard.
                     </p>
