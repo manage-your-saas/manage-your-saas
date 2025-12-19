@@ -200,6 +200,21 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.
         <p className="text-gray-500">
           &copy; {new Date().getFullYear()} ManageYourSaaS. All rights reserved.
         </p>
+        <div className="mt-4 flex justify-center space-x-6">
+          <a 
+            href="/terms-of-service" 
+            className="text-gray-600 hover:text-gray-700 text-sm transition-colors"
+          >
+            Terms of Service
+          </a>
+          <span className="text-gray-300">|</span>
+          <a 
+            href="/privacy-policy" 
+            className="text-gray-600 hover:text-gray-700 text-sm transition-colors"
+          >
+            Privacy Policy
+          </a>
+        </div>
       </div>
     </div>
   </footer>
