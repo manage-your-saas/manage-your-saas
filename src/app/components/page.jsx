@@ -6,10 +6,13 @@
   import logo from '../../../public/logo.svg';
   import Image from 'next/image';
   import { FiSun, FiMoon } from 'react-icons/fi'; // You'll need to install react-icons
+  import { useRouter } from 'next/navigation';
   import Link  from 'next/link'
 
 
   export default function App() {
+      const router = useRouter();
+    
     return (
       <div style={{ fontFamily: "var(--font-story-script)" }} className="min-h-screen bg-[#f8f8f8] text-gray-900 font-sans">
         <nav className="w-full bg-white border-b border-gray-700 border-2  fixed top-0 left-0 z-50">
@@ -30,18 +33,6 @@
         
         {/* Auth Buttons */}
         <div className="flex items-center space-x-4">
-          <Link
-            href="/login"
-            className="text-lg border-2 font-bold lg:text-1xl xl:text-2xl text-black border-black hover:bg-black hover:text-white px-3 py-2 rounded-md transition-colors"
-          >
-            Login
-          </Link>
-          <Link
-            href="/signup"
-            className="text-lg border-2 font-bold lg:text-1xl xl:text-2xl text-black border-black hover:bg-black hover:text-white px-3 py-2 rounded-md transition-colors"
-          >
-            Sign Up
-          </Link>
           <a 
             href="https://discord.gg/3nTT9HnjJR" 
             className="text-lg border-2 bg-violet-400 font-bold lg:text-1xl xl:text-2xl text-black border-black hover:text-gray-900 px-3 py-2 rounded-md"
