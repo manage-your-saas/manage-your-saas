@@ -67,16 +67,40 @@ export async function GET(req) {
       process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
-   await supabase
-  .from("search_console_accounts")
-  .upsert(
-    {
-      user_id:userId,
-      google_refresh_token: tokenData.refresh_token,
-    },
-    { onConflict: "user_id" }
-  );
+    // 🔍 Fetch Search Console sites
+    const sitesRes = await fetch(
+      "https://www.googleapis.com/webmasters/v3/sites",
+      {
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`,
+        },
+      }
+    );
 
+    const sitesData = await sitesRes.json();
+
+    if (!sitesData.siteEntry || sitesData.siteEntry.length === 0) {
+      return NextResponse.json(
+        { error: "No Search Console properties found" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Extract site URLs only
+    const siteUrls = sitesData.siteEntry.map((site) => site.siteUrl);
+
+    console.log("SITE URLS:", siteUrls);
+
+      await supabase
+      .from("search_console_accounts")
+      .upsert(
+        {
+          user_id:userId,
+          google_refresh_token: tokenData.refresh_token,
+          available_sites: siteUrls
+        },
+        { onConflict: "user_id" }
+      ).eq("user_id", userId);;
 
 
     // 🔄 Update integration status
