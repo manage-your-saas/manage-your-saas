@@ -12,7 +12,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
-    emailRedirectTo: 'http://localhost:3000/login'
+    emailRedirectTo: 'https://manageyoursaas-nu.vercel.app/login'
   }
     });
 
