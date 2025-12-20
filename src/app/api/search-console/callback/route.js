@@ -86,30 +86,21 @@ export async function GET(req) {
       );
     }
 
-    // Extract site URLs and filter out any undefined or invalid entries
-    const siteUrls = sitesData.siteEntry
-      .map((site) => site.siteUrl)
-      .filter(Boolean);
+    // ✅ Extract site URLs only
+    const siteUrls = sitesData.siteEntry.map((site) => site.siteUrl);
 
     console.log("SITE URLS:", siteUrls);
 
-    // Store the first site as selected by default
-    const defaultSelectedSite = siteUrls.length > 0 ? siteUrls[0] : null;
-
-    // Update or insert the account with available sites and selected site
-    await supabase
+      await supabase
       .from("search_console_accounts")
       .upsert(
         {
-          user_id: userId,
+          user_id:userId,
           google_refresh_token: tokenData.refresh_token,
-          available_sites: siteUrls,
-          site_url: defaultSelectedSite,  // Keep for backward compatibility
-          selected_site: defaultSelectedSite
+          available_sites: siteUrls
         },
         { onConflict: "user_id" }
-      )
-      .eq("user_id", userId);
+      ).eq("user_id", userId);;
 
 
     // 🔄 Update integration status

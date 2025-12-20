@@ -16,7 +16,7 @@ export async function GET(req) {
 
   const { data, error } = await supabase
     .from("search_console_accounts")
-    .select("site_url")
+    .select("selected_site")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -29,6 +29,6 @@ export async function GET(req) {
 
   return NextResponse.json({
     connected: true,
-    siteUrl: data.site_url, // can be null if not selected
+    siteUrl: data.selected_site, // can be null if not selected
   });
 }

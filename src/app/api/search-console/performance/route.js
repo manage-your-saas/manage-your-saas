@@ -23,11 +23,11 @@ export async function GET(req) {
 
     const { data } = await supabase
       .from("search_console_accounts")
-      .select("google_refresh_token, site_url")
+      .select("google_refresh_token, selected_site")
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (!data?.google_refresh_token || !data?.site_url) {
+    if (!data?.google_refresh_token || !data?.selected_site) {
       return NextResponse.json(
         { error: "Search Console not configured" },
         { status: 400 }
@@ -53,7 +53,7 @@ export async function GET(req) {
     });
 
     const res = await webmasters.searchanalytics.query({
-      siteUrl: data.site_url,
+      siteUrl: data.selected_site,
       requestBody: {
         startDate,
         endDate,

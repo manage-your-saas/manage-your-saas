@@ -3,35 +3,56 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import MetricsChart from '@/components/MetricsChart';
+import Image from 'next/image';
+import ga from '../../../../public/google-analytics-icon.svg'
+import seo from '../../../../public/google-search-console-icon.svg'
+import stripe from '../../../../public/stripe-icon.svg'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 function Integrations({ integrationStatus, googleAuthUrl, googleSearchAuthUrl, stripeAuthUrl }) {
-  const buttonStyle = "px-6 py-3 rounded-lg border-0 border-black text-white transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 active:scale-95";
+  const buttonStyle = "px-6 py-3 rounded-lg border-0 border-black text-white transition-all duration-200 ease-in-out transform  hover:shadow-xl ";
 
   return (
     <div className="flex justify-center gap-4 mb-8">
+      {/* <Image src={stripe} height={80} width={80}/> */}
       <a
         href={integrationStatus.stripe === 'connected' ? '/dashboard/stripe' : stripeAuthUrl}
-        className={`${buttonStyle} tracking-wider text-3xl bg-violet-400 hover:bg-violet-600 focus:ring-violet-300`}
+        className={`${buttonStyle} tracking-wider text-3xl border-2 border-gray-500 bg-violet-400 hover:bg-violet-500`}
       >
+       <div className="flex flex-row font-medium  items-center gap-3">
+
+        <Image src={stripe} height={45} width={45}/>
         {integrationStatus.stripe === 'connected' ? 'View Stripe' : 'Connect Stripe'}
+        </div>
       </a>
+
       <a
         href={integrationStatus.google_search_console === 'connected' ? '/dashboard/seo' : googleSearchAuthUrl}
-        className={`${buttonStyle} text-white tracking-wider text-3xl bg-blue-400 hover:bg-blue-600 focus:ring-blue-300`}
+        onClick={() => setActive(true)
+        }
+        className={`${buttonStyle} text-white tracking-wider border-2 border-gray-500 text-3xl bg-blue-500 hover:bg-blue-600 `}
       >
+        <div className="flex flex-row items-center gap-3">
+
+        <Image src={seo} height={45} width={45}/>
         {integrationStatus.google_search_console === 'connected' ? 'View Search Console' : 'Connect Search Console'}
+        </div>
       </a>
       <a
         href={integrationStatus.google_analytics === 'connected' ? '/dashboard/analytics' : googleAuthUrl}
-        className={`${buttonStyle} tracking-wider text-3xl  bg-amber-400 hover:bg-amber-600 focus:ring-amber-300`}
+        className={`${buttonStyle}  tracking-wider text-3xl border-2 border-gray-500 bg-amber-300 hover:bg-amber-400 focus:ring-amber-300`}
       >
+        <div className="flex flex-row items-center gap-3 text-black">
+
+      <Image src={ga} height={45} width={45}/>
         {integrationStatus.google_analytics === 'connected' ? 'View Google Analytics' : 'Connect Google Analytics'}
+        </div>
       </a>
     </div>
   );
 }
+
 
 export default function Stripe() {
   const [loading, setLoading] = useState(true);

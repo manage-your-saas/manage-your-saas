@@ -13,6 +13,18 @@ export default function SearchConsoleSites() {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [slec,setSlec] = useState("")
+
+
+  const test = [{
+  "connected": true,
+  "siteUrl": {
+    "available_sites": [
+      "sc-domain:interfreight.in",
+      "https://interfreight.in/"
+    ]
+  }
+}]
 
   useEffect(() => {
     async function load() {
@@ -33,9 +45,7 @@ export default function SearchConsoleSites() {
         const json = await res.json();
         if (!res.ok) throw new Error(json.error);
 
-        // Ensure we have an array of site URLs
-          
-        setSites(json);
+        setSites(json.siteUrl.available_sites);
 
         // console.log(sites);
       } catch (err) {
@@ -51,14 +61,14 @@ export default function SearchConsoleSites() {
   async function handleSelect(siteUrl) {
     try {
       // Ensure we only pass a single site URL
-      const selectedSite = Array.isArray(siteUrl) ? siteUrl[0] : siteUrl;
       
-      const res = await fetch("/api/search-console/select-site", {
+      
+      const res = await fetch( "api/search-console/select-site", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          userId, 
-          siteUrl: selectedSite // Pass only the selected site URL
+          userId: userId, 
+          siteUrl: siteUrl // Pass only the selected site URL
         }),
       });
 
@@ -66,6 +76,8 @@ export default function SearchConsoleSites() {
         const error = await res.json();
         throw new Error(error.error || 'Failed to save site');
       }
+
+      setSlec(siteUrl)
 
       window.location.href = "/dashboard/seo";
     } catch (err) {
@@ -96,6 +108,7 @@ export default function SearchConsoleSites() {
         Select Search Console Site
       </h1>
 
+
       {sites.length === 0 ? (
         <p className="text-gray-600">
           No sites found. Please make sure your Google account has access.
@@ -103,22 +116,19 @@ export default function SearchConsoleSites() {
       ) : (
         <ul className="space-y-3">
           {sites.map((site, i) => (
-            <li
-              key={i+1}
-              className="border rounded-lg p-4 flex justify-between items-center"
-            >
-              <p className="font-medium">{site.siteUrl}</p>
+  <li key={i} className="border rounded-lg p-4 flex justify-between">
+    <p>{site}</p>
+    <button onClick={() => handleSelect(site)}>Use</button>
+  </li>
+))}
 
-              <button
-                onClick={() => handleSelect(site.siteUrl)}
-                className="px-4 py-2 border rounded hover:bg-black hover:text-white"
-              >
-                Use
-              </button>
-            </li>
-          ))}
+
+
         </ul>
       )}
+<h2>Selected Site: {slec}</h2>
+<h2>{userId}</h2>
+
     </div>
   );
 }
