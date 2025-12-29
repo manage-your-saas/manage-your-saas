@@ -4,6 +4,19 @@ import React from "react";
 import "./globals.css";
 import "./fonts.css";
 import Navbar from "./components/Navbar";
+import { Space_Grotesk, DM_Sans } from "next/font/google"
+
+const _spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-heading",
+  display: "swap",
+})
+
+const _dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+})
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,9 +41,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={` ${_spaceGrotesk.variable} antialiased`}
       >
-        <Navbar />
+        {/* <Navbar /> */}
         {children}
       </body>
     </html>

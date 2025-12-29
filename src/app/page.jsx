@@ -1,11 +1,27 @@
-import { Metadata } from 'next';
-import LandingPage from '@/app/components/page';  // Updated import path
+import { Header } from "../components/header"
+import { HeroSection } from "../components/hero-section"
+import { LogoCloud } from "../components/logo-cloud"
+import { FeaturesSection } from "../components/features-section"
+import { IntegrationsSection } from "../components/integrations-section"
+import { TestimonialsSection } from "../components/testimonials-section"
+import { PricingSection } from "../components/pricing-section"
+import { CTASection } from "../components/cta-section"
+import { Footer } from "../components/footer"
 
-export const metadata = {
-  title: 'Manageyoursaas',
-  description: 'Run your entire SaaS from one simple dashboard. Manage social media, ads, SEO, user analytics, and more in one place.',
-};
-
-export default function Home() {
-  return <LandingPage />;
+export default function HomePage() {
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main>
+        <HeroSection />
+        <LogoCloud />
+        <FeaturesSection />
+        <IntegrationsSection />
+        <TestimonialsSection />
+        <PricingSection />
+        <CTASection />
+      </main>
+      <Footer />
+    </div>
+  )
 }
