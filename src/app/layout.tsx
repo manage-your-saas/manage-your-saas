@@ -31,6 +31,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Manageyoursaas",
   description: "One dashboard to manage your entire SaaS !",
+  icons: {
+    icon: "/myslogo.svg",
+    shortcut: "/myslogo.svg",
+    apple: "/myslogo.svg",
+  },
 };
 
 export default function RootLayout({
