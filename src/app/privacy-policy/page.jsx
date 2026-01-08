@@ -123,7 +123,7 @@ export default function PrivacyPolicy() {
       </h2>
       <p>
         If you have questions, contact us at:{" "}
-        <strong>support@yourdomain.com</strong>
+        <strong>manageyoursaas@gmail.com</strong>
       </p>
     </main>
   );
