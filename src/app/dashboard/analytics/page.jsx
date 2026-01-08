@@ -1,343 +1,228 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-import Image from 'next/image';
-import ga from '../../../../public/google-analytics-icon.svg'
-import seo from '../../../../public/google-search-console-icon.svg'
-import stripe from '../../../../public/stripe-icon.svg'
-import { 
-  Users, 
-  Activity, 
-  Eye, 
-  TrendingUp, 
-  Clock,
-  Calendar,
-  RefreshCw,
-  BarChart3,
-  Search,
-  Globe,
-  Zap,
-  MousePointer,
-  ArrowUpRight,
-  ArrowDownRight,
-  Filter,
-  Download,
-  Settings
-} from "lucide-react";
-import AnalyticsChart from "../../components/AnalyticsChart";
+import { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { DashboardSidebar } from "../seo/dashboard-sidebar";
+import { DashboardTopbar } from "../seo/dashboard-topbar";
+import { AnalyticsMetrics } from "./analytics-metrics"
+import { AnalyticsChart } from "./analytics-chart"
+import { TrafficSources } from "./traffic-sources"
+import { TopPages } from "./top-pages"
+import { GeographyMap } from "./geography-map"
+import { RealTimeUsers } from "./real-time-users"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-const DATE_PRESETS = [
-  { label: "Today", value: "today" },
-  { label: "Yesterday", value: "yesterday" },
-  { label: "This week", value: "thisWeek" },
+const DATE_RANGES = [
   { label: "Last 7 days", value: "7daysAgo" },
-  { label: "Last week", value: "lastWeek" },
   { label: "Last 28 days", value: "28daysAgo" },
-  { label: "Last 30 days", value: "30daysAgo" },
-  { label: "This month", value: "thisMonth" },
-  { label: "Last month", value: "lastMonth" },
-  { label: "Last 90 days", value: "90daysAgo" },
-  { label: "Quarter to date", value: "quarterToDate" },
-  { label: "This year", value: "thisYear" },
+  { label: "Last 3 months", value: "90daysAgo" },
 ];
 
-
-function MetricCard({ title, value, color, change, isPositive, description }) {
-  const colorStyles = {
-    blue: { text: "text-[#1967d2]", border: "border-l-[#1967d2]", bg: "bg-blue-200" },
-    purple: { text: "text-[#8430ce]", border: "border-l-[#8430ce]", bg: "bg-purple-200" },
-    green: { text: "text-[#188038]", border: "border-l-[#188038]", bg: "bg-green-100" },
-    orange: { text: "text-[#e37400]", border: "border-l-[#e37400]", bg: "bg-orange-200" },
-  };
-
-  const formatValue = (val) => {
-    if (val === undefined || val === null || isNaN(val)) return '—';
-    if (String(val).includes('%')) return val;
-    return val.toLocaleString();
-  };
-
-  return (
-    <div className={`w-full text-left border border-transparent border-l-4 ${colorStyles[color].border} ${colorStyles[color].bg} rounded-lg p-5 shadow-sm`}>
-      <p className="text-xl font-bold text-gray-600 uppercase tracking-wide mb-1">{title}</p>
-      <p className={`text-5xl font-bold ${colorStyles[color].text} tracking-tight`}>
-        {formatValue(value)}
-      </p>
-      <div className={`flex items-center text-base tracking-wide mt-2 text-[#5f6368]`}>
-        <span className={`${isPositive ? "text-green-600" : "text-red-600"}`}>{isPositive ? "▲" : "▼"} {change}%</span>
-        <span className="ml-1">vs previous</span>
-      </div>
-    </div>
-  );
-}
-
-function DateRangeSelector({ range, setRange }) {
-  return (
-    <div className="mb-6 flex items-center gap-3">
-      <span className="text-lg text-[#5f6368] font-medium">Date:</span>
-      <div className="flex gap-2">
-        {DATE_PRESETS.map((r) => (
-          <button
-            key={r.value}
-            onClick={() => setRange(r.value)}
-            className={`px-4 py-1.5 rounded-full text-lg border-2 cursor-pointer font-medium transition-all ${
-              range === r.value
-                ? "bg-[#e8f0fe] text-[#1967d2] border border-[#1967d2]"
-                : "bg-white text-[#5f6368] border border-[#dadce0] hover:bg-[#f8f9fa] hover:border-[#5f6368]"
-            }`}
-          >
-            {r.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function LoadingState() {
-  return (
-    <div style={{ fontFamily: "var(--font-story-script)" }}  className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-xl">Loading Analytics data...</p>
-        </div>
-      </div>
-  );
-}
-
-function ErrorState({ error, onRetry }) {
-  return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-red-600 text-2xl">⚠</span>
-        </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to load data</h3>
-        <p className="text-sm text-gray-600 mb-6">{error}</p>
-        <button
-          onClick={onRetry}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-800 rounded-full font-medium text-sm hover:bg-gray-200 transition-colors"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Try again
-        </button>
-      </div>
-    </div>
-  );
-}
-
-
-function PerformanceSection({ metrics }) {
-  const performanceMetrics = [
-    { title: "Total clicks", value: metrics?.clicks, color: "blue", change: 12.5, isPositive: true },
-    { title: "Total impressions", value: metrics?.impressions, color: "purple", change: 8.2, isPositive: true },
-    { title: "Average CTR", value: `${(metrics?.ctr * 100).toFixed(2)}%`, color: "green", change: -2.1, isPositive: false },
-    { title: "Average position", value: metrics?.position?.toFixed(1), color: "orange", change: 0.8, isPositive: true },
-  ];
-
-  return (
-    <section className="mb-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {performanceMetrics.map((metric, index) => (
-          <MetricCard key={index} {...metric} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function Integrations({ integrationStatus, googleAuthUrl, googleSearchAuthUrl, stripeAuthUrl }) {
-  const buttonStyle = "px-6 py-3 rounded-lg border-0 border-black text-white transition-all duration-200 ease-in-out transform  hover:shadow-xl ";
-
-  return (
-    <div className="flex justify-center gap-4 mb-8">
-      {/* <Image src={stripe} height={80} width={80}/> */}
-      <a
-        href={integrationStatus.stripe === 'connected' ? '/dashboard/stripe' : stripeAuthUrl}
-        className={`${buttonStyle} tracking-wider text-3xl border-2 border-gray-500 bg-violet-400 hover:bg-violet-500`}
-      >
-       <div className="flex flex-row font-medium  items-center gap-3">
-
-        <Image src={stripe} height={45} width={45}/>
-        {integrationStatus.stripe === 'connected' ? 'View Stripe' : 'Connect Stripe'}
-        </div>
-      </a>
-
-      <a
-        href={integrationStatus.google_search_console === 'connected' ? '/dashboard/seo' : googleSearchAuthUrl}
-        onClick={() => setActive(true)
-        }
-        className={`${buttonStyle} text-white tracking-wider border-2 border-gray-500 text-3xl bg-blue-500 hover:bg-blue-600 `}
-      >
-        <div className="flex flex-row items-center gap-3">
-
-        <Image src={seo} height={45} width={45}/>
-        {integrationStatus.google_search_console === 'connected' ? 'View Search Console' : 'Connect Search Console'}
-        </div>
-      </a>
-      <a
-        href={integrationStatus.google_analytics === 'connected' ? '/dashboard/analytics' : googleAuthUrl}
-        className={`${buttonStyle}  tracking-wider text-3xl border-2 border-gray-500 bg-amber-300 hover:bg-amber-400 focus:ring-amber-300`}
-      >
-        <div className="flex flex-row items-center gap-3 text-black">
-
-      <Image src={ga} height={45} width={45}/>
-        {integrationStatus.google_analytics === 'connected' ? 'View Google Analytics' : 'Connect Google Analytics'}
-        </div>
-      </a>
-    </div>
-  );
-}
-
-
-
-function EngagementSection({ metrics }) {
-  const engagementMetrics = [
-    { title: "Engagement Rate", value: metrics?.engagementRate !== undefined ? `${(metrics.engagementRate * 100).toFixed(1)}%` : '—', color: "green", change: 5.2, isPositive: true },
-    { title: "Avg. Session Duration", value: metrics?.avgSessionDuration !== undefined ? formatDuration(metrics.avgSessionDuration) : '—', color: "blue", change: 12.8, isPositive: true },
-  ];
-
-  return (
-    <section>
-      <div className="flex items-center gap-2 mb-4">
-        <Activity className="w-5 h-5 text-muted-foreground" />
-        <h2 className="text-3xl font-medium text-foreground">Engagement</h2>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {engagementMetrics.map((metric, index) => (
-          <MetricCard key={index} {...metric} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function formatDuration(seconds) {
-  if (typeof seconds !== 'number') return seconds;
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  if (mins > 0) {
-    return `${mins}m ${secs}s`;
-  }
-  return `${secs}s`;
-}
-
-
-export default function Dashboard() {
-  const [metrics, setMetrics] = useState(null);
-  const [range, setRange] = useState("7daysAgo");
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [integrationStatus, setIntegrationStatus] = useState({});
-  const [user, setUser] = useState(null);
-  const [chartData, setChartData] = useState([]);
-
-  async function load() {
-    setLoading(true);
-    setError(null);
-
-    const { data } = await supabase.auth.getUser();
-    if (!data?.user) {
-      setError("User not logged in");
-      setLoading(false);
-      return;
-    }
-    setUser(data.user);
-
-    try {
-      const res = await fetch(
-        `/api/google/analytics?userId=${data.user.id}&startDate=${range}`
-      );
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error);
-      setMetrics(json.metrics);
-
-      // Fetch GA Status
-      const gaStatusRes = await fetch(`/api/google/status?userId=${data.user.id}`);
-      const gaStatusData = await gaStatusRes.json();
-      if (gaStatusRes.ok && gaStatusData.connected) {
-        setIntegrationStatus(prev => ({...prev, google_analytics: 'connected'}));
-      }
-
-      // Fetch SC Status
-      const scStatusRes = await fetch(`/api/search-console/status?userId=${data.user.id}`);
-      const scStatusData = await scStatusRes.json();
-      if (scStatusRes.ok && scStatusData.siteUrl) { // Note: SC status check for siteUrl
-        setIntegrationStatus(prev => ({...prev, google_search_console: 'connected'}));
-      }
-
-      // Fetch Chart Data
-      const chartRes = await fetch(`/api/google/analytics?userId=${data.user.id}&dimension=date&startDate=${range}`);
-      const chartJson = await chartRes.json();
-      if (!chartRes.ok) throw new Error(chartJson.error);
-      setChartData(chartJson.rows || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+export default function AnalyticsPage() {
+  const [analyticsData, setAnalyticsData] = useState({
+    summary: null,
+    chartData: [],
+    trafficSources: [],
+    topPages: [],
+    geoData: [],
+    realTimeUsers: 0,
+    loading: true,
+    error: null,
+    selectedRange: "28daysAgo"
+  });
 
   useEffect(() => {
-    load();
-  }, [range]);
+    const fetchAnalyticsData = async () => {
+      try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          window.location.href = '/dashboard';
+          return;
+        }
 
-  if (loading) return <LoadingState />;
+        // Check Google Analytics status
+        const statusRes = await fetch(`/api/google/status?userId=${user.id}`);
+        const status = await statusRes.json();
+        
+        if (!status.connected) {
+          // No GA account connected - show error
+          setAnalyticsData(prev => ({ 
+            ...prev, 
+            error: "Error: No Google Analytics account connected. Please connect your Google Analytics account to view analytics data.",
+            loading: false 
+          }));
+          return;
+        }
 
-  if (error) return <ErrorState error={error} onRetry={load} />;
+        // Fetch analytics data
+        const [summaryRes, chartRes, trafficRes, pagesRes, geoRes] = await Promise.all([
+          fetch(`/api/google/analytics?userId=${user.id}&startDate=${analyticsData.selectedRange}`),
+          fetch(`/api/google/analytics?userId=${user.id}&dimension=date&metric=activeUsers&metric=sessions&metric=screenPageViews&startDate=${analyticsData.selectedRange}`),
+          fetch(`/api/google/analytics?userId=${user.id}&dimension=sessionSource&metric=sessions&startDate=${analyticsData.selectedRange}`),
+          fetch(`/api/google/analytics?userId=${user.id}&dimension=pagePath&metric=screenPageViews&startDate=${analyticsData.selectedRange}`),
+          fetch(`/api/google/analytics?userId=${user.id}&dimension=countryId&metric=activeUsers&startDate=${analyticsData.selectedRange}`)
+        ]);
 
-  const state = user ? encodeURIComponent(JSON.stringify({ userId: user.id })) : '';
+        const [summary, chart, traffic, pages, geo] = await Promise.all([
+          summaryRes.json(),
+          chartRes.json(),
+          trafficRes.json(),
+          pagesRes.json(),
+          geoRes.json(),
+        ]);
 
-  const googleAuthUrl =
-    `https://accounts.google.com/o/oauth2/v2/auth` +
-    `?client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_REDIRECT_URI)}` +
-    `&response_type=code` +
-    `&scope=https://www.googleapis.com/auth/analytics.readonly` +
-    `&access_type=offline` +
-    `&prompt=consent` +
-    `&state=${state}`;
+        setAnalyticsData(prev => ({
+          ...prev,
+          summary: summary.metrics,
+          chartData: chart.rows || [],
+          trafficSources: traffic.rows || [],
+          topPages: pages.rows || [],
+          geoData: geo.rows || [],
+          loading: false
+        }));
 
-  const googleSearchAuthUrl =
-    "https://accounts.google.com/o/oauth2/v2/auth" +
-    `?client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(
-      process.env.NEXT_PUBLIC_GOOGLE_SEARCH_CONSOLE_REDIRECT_URI
-    )}` +
-    `&response_type=code` +
-    `&scope=${encodeURIComponent(
-      "https://www.googleapis.com/auth/webmasters.readonly"
-    )}` +
-    `&access_type=offline` +
-    `&prompt=consent` +
-    `&include_granted_scopes=true` +
-    `&state=${state}`;
+      } catch (error) {
+        console.error("Error fetching analytics data:", error);
+        setAnalyticsData(prev => ({ ...prev, error: error.message, loading: false }));
+      }
+    };
 
-  const stripeAuthUrl = user ? `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID}&scope=read_write&user_id=${user.id}` : '#';
+    fetchAnalyticsData();
+  }, [analyticsData.selectedRange]);
 
+  useEffect(() => {
+    const fetchRealTime = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const res = await fetch(`/api/google/analytics/real-time?userId=${user.id}`);
+          const data = await res.json();
+          if (data.success) {
+            setAnalyticsData(prev => ({ ...prev, realTimeUsers: data.activeUsers }));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching real-time data:", error);
+      }
+    };
+
+    fetchRealTime();
+    const interval = setInterval(fetchRealTime, 10000); // Poll every 10 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleRangeChange = (e) => {
+    setAnalyticsData(prev => ({ ...prev, selectedRange: e.target.value, loading: true }));
+  };
   return (
-    <div style={{ fontFamily: "var(--font-story-script)" }} className="mt-16 min-h-screen bg-white">
-      <main className="max-w-[1800px] mx-auto px-6 py-8">
-        <Integrations 
-          integrationStatus={integrationStatus} 
-          googleAuthUrl={googleAuthUrl} 
-          googleSearchAuthUrl={googleSearchAuthUrl} 
-          stripeAuthUrl={stripeAuthUrl} 
-        />
-        <div className="mb-8">
-          <h1 className="text-5xl font-normal text-[#202124] mb-1"><span className="font-bold">Analytics</span> Performance</h1>
-          <p className="text-lg text-[#5f6368]">Website traffic and engagement metrics</p>
-        </div>
-        <PerformanceSection metrics={metrics} />
-        <EngagementSection metrics={metrics} /><br />
-        <DateRangeSelector range={range} setRange={setRange} />
-        <AnalyticsChart chartData={chartData} />
-      </main>
+    <div className="min-h-screen bg-background flex">
+      <DashboardSidebar />
+
+      <div className="flex-1 flex flex-col lg:ml-72">
+        <DashboardTopbar />
+
+        <main className="flex-1 p-4 md:p-6 lg:p-8 space-y-6">
+          {/* Page Header */}
+          <div className="animate-fade-up">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                    <span className="text-xs font-medium text-blue-600">Real-time</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{analyticsData.realTimeUsers} users online now</span>
+                </div>
+                <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight">Google Analytics</h1>
+                <p className="text-muted-foreground mt-1">Website traffic and engagement metrics</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <select 
+                  value={analyticsData.selectedRange}
+                  onChange={handleRangeChange}
+                  className="px-4 py-2 rounded-xl border border-border bg-card text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                >
+                  {DATE_RANGES.map(range => (
+                    <option key={range.value} value={range.value}>
+                      {range.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {analyticsData.loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-muted/50 rounded-2xl animate-pulse" />)}
+            </div>
+          ) : analyticsData.error ? (
+            <div className="min-h-screen bg-background flex items-center justify-center">
+              <div className="text-center max-w-md w-full p-8">
+                <div className="mb-8">
+                  <h1 className="text-3xl font-bold tracking-tight mb-4">
+                    Error: No Google Analytics Account Connected
+                  </h1>
+                  <p className="text-muted-foreground mb-8">
+                    You need to connect your Google Analytics account to view analytics data. Please connect your account to get started.
+                  </p>
+                  <div className="space-y-4">
+                    <button 
+                      onClick={() => window.location.href = "/dashboard"}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                      Back to Overview
+                    </button>
+                    <button 
+                      onClick={() => window.location.href = "/analytics"}
+                      className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002 2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002 2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2 2z" />
+                      </svg>
+                      Connect Google Analytics
+                    </button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Need help? Visit our <a href="/dashboard" className="text-blue-600 hover:underline">overview</a> to manage your integrations.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Real-time Users Bar */}
+              <RealTimeUsers realTimeUsers={analyticsData.realTimeUsers} />
+
+              {/* Metrics Grid */}
+              <AnalyticsMetrics metrics={analyticsData.summary} />
+
+              {/* Charts Row */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="xl:col-span-2">
+                  <AnalyticsChart chartData={analyticsData.chartData} selectedRange={analyticsData.selectedRange} />
+                </div>
+                <TrafficSources trafficSources={analyticsData.trafficSources} />
+              </div>
+
+              {/* Bottom Row */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <TopPages topPages={analyticsData.topPages} />
+                <GeographyMap geoData={analyticsData.geoData} />
+              </div>
+            </>
+          )}
+        </main>
+      </div>
     </div>
-  );
+  )
 }

@@ -111,52 +111,81 @@ export async function GET(req) {
     const dimension = req.nextUrl.searchParams.get("dimension");
 
     if (dimension) {
+      const metricsParams = req.nextUrl.searchParams.getAll("metric");
+      const metrics = metricsParams.length > 0 ? metricsParams.map(name => ({ name })) : [{ name: "activeUsers" }, { name: "newUsers" }];
+
       // Time-series data for chart
       const res = await analytics.properties.runReport({
         property: `properties/${data.google_property_id}`,
         requestBody: {
           dateRanges: [{ startDate, endDate }],
           dimensions: [{ name: dimension }],
-          metrics: [{ name: "activeUsers" }, { name: "newUsers" }],
+          metrics: metrics,
         },
       });
 
-      const rows = res.data.rows?.map(row => ({
-        keys: [row.dimensionValues[0].value],
-        clicks: parseFloat(row.metricValues[0].value ?? "0"), // Using activeUsers as clicks for now
-        impressions: parseFloat(row.metricValues[1].value ?? "0"), // Using newUsers as impressions
-      })) || [];
+      const rows = res.data.rows?.map(row => {
+        const rowData = { dimension: row.dimensionValues[0].value };
+        metrics.forEach((metric, index) => {
+          rowData[metric.name] = parseFloat(row.metricValues[index].value ?? "0");
+        });
+        return rowData;
+      }) || [];
 
       return NextResponse.json({ success: true, rows });
 
     } else {
       // Summary data for metric cards
-      const res = await analytics.properties.runReport({
+      const metricsToFetch = [
+        { name: "activeUsers" },
+        { name: "sessions" },
+        { name: "screenPageViews" },
+        { name: "averageSessionDuration" },
+        { name: "bounceRate" },
+      ];
+
+      const runReport = (dateRanges) => analytics.properties.runReport({
         property: `properties/${data.google_property_id}`,
-        requestBody: {
-          dateRanges: [{ startDate, endDate }],
-          metrics: [
-            { name: "activeUsers" },
-            { name: "newUsers" },
-            { name: "sessions" },
-            { name: "screenPageViews" },
-            { name: "engagementRate" },
-            { name: "averageSessionDuration" },
-          ],
-        },
+        requestBody: { dateRanges, metrics: metricsToFetch },
       });
 
-      const row = res.data.rows?.[0];
+      const days = parseInt(range.replace('daysAgo', ''));
+      const previousStartDate = `${days * 2}daysAgo`;
+      const previousEndDate = `${days}daysAgo`;
+
+      const [currentPeriodRes, previousPeriodRes] = await Promise.all([
+        runReport([{ startDate, endDate }]),
+        runReport([{ startDate: previousStartDate, endDate: previousEndDate }]),
+      ]);
+
+      const parseMetrics = (res) => {
+        const row = res.data.rows?.[0];
+        return {
+          users: parseInt(row?.metricValues?.[0]?.value ?? "0", 10),
+          sessions: parseInt(row?.metricValues?.[1]?.value ?? "0", 10),
+          pageviews: parseInt(row?.metricValues?.[2]?.value ?? "0", 10),
+          avgDuration: parseFloat(row?.metricValues?.[3]?.value ?? "0"),
+          bounceRate: parseFloat(row?.metricValues?.[4]?.value ?? "0"),
+        };
+      };
+
+      const currentMetrics = parseMetrics(currentPeriodRes);
+      const previousMetrics = parseMetrics(previousPeriodRes);
+
+      const calculateChange = (current, previous) => {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return ((current - previous) / previous) * 100;
+      };
 
       return NextResponse.json({
         success: true,
         metrics: {
-          activeUsers: parseFloat(row?.metricValues?.[0]?.value ?? "0"),
-          newUsers: parseFloat(row?.metricValues?.[1]?.value ?? "0"),
-          sessions: parseFloat(row?.metricValues?.[2]?.value ?? "0"),
-          pageViews: parseFloat(row?.metricValues?.[3]?.value ?? "0"),
-          engagementRate: parseFloat(row?.metricValues?.[4]?.value ?? "0"),
-          avgSessionDuration: parseFloat(row?.metricValues?.[5]?.value ?? "0"),
+          ...currentMetrics,
+          usersChange: calculateChange(currentMetrics.users, previousMetrics.users),
+          sessionsChange: calculateChange(currentMetrics.sessions, previousMetrics.sessions),
+          pageviewsChange: calculateChange(currentMetrics.pageviews, previousMetrics.pageviews),
+          avgDurationChange: calculateChange(currentMetrics.avgDuration, previousMetrics.avgDuration),
+          bounceRateChange: calculateChange(currentMetrics.bounceRate, previousMetrics.bounceRate),
         },
       });
     }

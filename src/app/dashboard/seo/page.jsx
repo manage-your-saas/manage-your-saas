@@ -1,519 +1,239 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { createClient } from "@supabase/supabase-js"
-  import Image from 'next/image';
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+import { DashboardSidebar } from "./dashboard-sidebar";
+import { DashboardTopbar } from "./dashboard-topbar";
+import { MetricsBento } from "./metrics-bento";
+import { PerformanceChart } from "./performance-chart";
+import { QueriesTable } from "./queries-table";
+import { QuickInsights } from "./quick-insights";
 
-import ga from '../../../../public/google-analytics-icon.svg'
-import seo from '../../../../public/google-search-console-icon.svg'
-import stripe from '../../../../public/stripe-icon.svg'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts"
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL, 
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-
-const DATE_PRESETS = [
+const DATE_RANGES = [
   { label: "Last 7 days", value: "7daysAgo" },
   { label: "Last 28 days", value: "28daysAgo" },
   { label: "Last 3 months", value: "90daysAgo" },
-]
+];
 
-export default function SeoDashboard() {
-  const [overview, setOverview] = useState(null)
-  const [active,setActive] = useState(false);
-  const [queries, setQueries] = useState([])
-  const [countries,setCountries] = useState([])
-  const [chartData, setChartData] = useState([])
-  const [range, setRange] = useState("28daysAgo")
-  const [tab, setTab] = useState("QUERIES")
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [activeMetrics, setActiveMetrics] = useState({ clicks: true, impressions: true, ctr: false, position: false })
-  const [siteUrl, setSiteUrl] = useState("")
-  const [user, setUser] = useState(null)
-  const [integrationStatus, setIntegrationStatus] = useState({})
+export default function DashboardPage() {
+  const [seoData, setSeoData] = useState({
+    summary: null,
+    queries: [],
+    pages: [],
+    countries: [],
+    devices: [],
+    chartData: [],
+    loading: true,
+    error: null,
+    siteUrl: "",
+    selectedRange: "28daysAgo"
+  });
 
   useEffect(() => {
-    const checkAuthAndLoad = async () => {
+    const fetchSeoData = async () => {
       try {
-        const { data: auth } = await supabase.auth.getUser();
-        if (!auth?.user) {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
           window.location.href = '/dashboard';
           return;
         }
-        
-        // Set user state first
-        setUser(auth.user);
-        
-        // Then load the SEO data
-        loadSeo();
+
+        // Check Search Console status
+        const statusRes = await fetch(`/api/search-console/status?userId=${user.id}`);
+        const status = await statusRes.json();
+
+        if (!status?.siteUrl) {
+          throw new Error("No Search Console site selected");
+        }
+
+        // Fetch SEO summary
+        const [summaryRes, queriesRes, pagesRes, countriesRes, devicesRes] = await Promise.all([
+          fetch(`/api/search-console/seo-summary?userId=${user.id}&siteUrl=${encodeURIComponent(status.siteUrl)}&startDate=${seoData.selectedRange}`),
+          fetch(`/api/search-console/performance?userId=${user.id}&dimension=query&startDate=${seoData.selectedRange}`),
+          fetch(`/api/search-console/performance?userId=${user.id}&dimension=page&startDate=${seoData.selectedRange}`),
+          fetch(`/api/search-console/performance?userId=${user.id}&dimension=country&startDate=${seoData.selectedRange}`),
+          fetch(`/api/search-console/performance?userId=${user.id}&dimension=device&startDate=${seoData.selectedRange}`)
+        ]);
+
+        const summary = await summaryRes.json();
+        const queries = await queriesRes.json();
+        const pages = await pagesRes.json();
+        const countries = await countriesRes.json();
+        const devices = await devicesRes.json();
+
+        // Process data for charts
+        const chartData = processChartData(summary?.data || []);
+
+        setSeoData(prev => ({
+          ...prev,
+          summary: summary?.seo,
+          queries: queries?.rows || [],
+          pages: pages?.rows || [],
+          countries: countries?.rows || [],
+          devices: devices?.rows || [],
+          chartData,
+          siteUrl: status.siteUrl.replace("sc-domain:", "").trim(),
+          loading: false
+        }));
+
       } catch (error) {
-        console.error('Error in auth check:', error);
-        window.location.href = '/dashboard';
+        console.error("Error fetching SEO data:", error);
+        setSeoData(prev => ({
+          ...prev,
+          error: error.message,
+          loading: false
+        }));
       }
     };
 
-    checkAuthAndLoad();
-  }, [range]);
+    fetchSeoData();
+  }, [seoData.selectedRange]);
 
-  async function loadSeo() {
-    setLoading(true)
-    setError(null)
-
-    const { data: auth } = await supabase.auth.getUser()
-    if (!auth?.user) {
-      setError("User not logged in")
-      setLoading(false)
-      return
-    }
-    setUser(auth.user)
-
-    try {
-      const statusRes = await fetch(`/api/search-console/status?userId=${auth.user.id}`)
-      const status = await statusRes.json()
-
-      if (!status.siteUrl) {
-        setError("No Search Console site selected")
-        setLoading(false)
-        return
-      }
-      setSiteUrl(status.siteUrl.replace("sc-domain:", "").trim())
-
-      // Overview
-      const overviewRes = await fetch(
-        `/api/search-console/seo-summary?userId=${auth.user.id}&siteUrl=${encodeURIComponent(
-          status.siteUrl,
-        )}&startDate=${range}`,
-      )
-      const overviewJson = await overviewRes.json()
-      setOverview(overviewJson.seo)
-
-      // Queries
-      const queryRes = await fetch(
-        `/api/search-console/performance?userId=${auth.user.id}&dimension=query&startDate=${range}`,
-      )
-      const queryJson = await queryRes.json();
-      setQueries(queryJson.rows || []);
-
-      // Country
-      const countryRes = await fetch(
-        `/api/search-console/performance?userId=${auth.user.id}&dimension=country&startDate=${range}`
-      )
-      const countryJson = await countryRes.json();
-      setCountries(countryJson.rows || [])
-
-      // Chart Data
-      const chartRes = await fetch(
-        `/api/search-console/performance?userId=${auth.user.id}&dimension=date&startDate=${range}`,
-      );
-      const chartJson = await chartRes.json();
-      setChartData(chartJson.rows || []);
-
-      // Fetch GA Status
-      const gaStatusRes = await fetch(`/api/google/status?userId=${auth.user.id}`);
-      const gaStatusData = await gaStatusRes.json();
-      if (gaStatusRes.ok && gaStatusData.connected) {
-        setIntegrationStatus(prev => ({...prev, google_analytics: 'connected'}));
-      }
-
-      // Fetch SC Status
-      if (status.siteUrl) {
-        setIntegrationStatus(prev => ({...prev, google_search_console: 'connected'}));
-      }
-
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-      const toggleMetric = (metric) => {
-    setActiveMetrics((prev) => {
-      const activeCount = Object.values(prev).filter(Boolean).length;
-      if (activeCount === 1 && prev[metric]) {
-        return prev;
-      }
-      return { ...prev, [metric]: !prev[metric] };
-    });
+  const processChartData = (data) => {
+    if (!data) return [];
+    return data.map(item => ({
+      date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      clicks: item.clicks,
+      impressions: item.impressions,
+      ctr: (item.ctr * 100).toFixed(2),
+      position: item.position.toFixed(2),
+    }));
   };
 
-function Integrations({ integrationStatus, googleAuthUrl, googleSearchAuthUrl, stripeAuthUrl }) {
-  const buttonStyle = "px-6 py-3 rounded-lg border-0 border-black text-white transition-all duration-200 ease-in-out transform  hover:shadow-xl ";
+  const handleRangeChange = (e) => {
+    const newRange = e.target.value;
+    setSeoData(prev => ({
+      ...prev,
+      selectedRange: newRange,
+      loading: true
+    }));
+  };
 
-  return (
-    <div className="flex justify-center gap-4 mb-8">
-      {/* <Image src={stripe} height={80} width={80}/> */}
-      <a
-        href={integrationStatus.stripe === 'connected' ? '/dashboard/stripe' : stripeAuthUrl}
-        className={`${buttonStyle} tracking-wider text-3xl border-2 border-gray-500 bg-violet-400 hover:bg-violet-500`}
-      >
-       <div className="flex flex-row font-medium  items-center gap-3">
-
-        <Image src={stripe} height={45} width={45}/>
-        {integrationStatus.stripe === 'connected' ? 'View Stripe' : 'Connect Stripe'}
-        </div>
-      </a>
-
-      <a
-        href={integrationStatus.google_search_console === 'connected' ? '/dashboard/seo' : googleSearchAuthUrl}
-        onClick={() => setActive(true)
-        }
-        className={`${buttonStyle} text-white tracking-wider border-2 border-gray-500 text-3xl bg-blue-500 hover:bg-blue-600 `}
-      >
-        <div className="flex flex-row items-center gap-3">
-
-        <Image src={seo} height={45} width={45}/>
-        {integrationStatus.google_search_console === 'connected' ? 'View Search Console' : 'Connect Search Console'}
-        </div>
-      </a>
-      <a
-        href={integrationStatus.google_analytics === 'connected' ? '/dashboard/analytics' : googleAuthUrl}
-        className={`${buttonStyle}  tracking-wider text-3xl border-2 border-gray-500 bg-amber-300 hover:bg-amber-400 focus:ring-amber-300`}
-      >
-        <div className="flex flex-row items-center gap-3 text-black">
-
-      <Image src={ga} height={45} width={45}/>
-        {integrationStatus.google_analytics === 'connected' ? 'View Google Analytics' : 'Connect Google Analytics'}
-        </div>
-      </a>
-    </div>
-  );
-}
-
-  if (!overview)
+  if (seoData.loading) {
     return (
-      <div style={{ fontFamily: "var(--font-story-script)" }} className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-xl">Loading SEO data...</p>
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse">Loading SEO data...</div>
       </div>
-    )
-
-  const state = user ? encodeURIComponent(JSON.stringify({ userId: user.id })) : '';
-
-  const googleAuthUrl =
-    `https://accounts.google.com/o/oauth2/v2/auth` +
-    `?client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_REDIRECT_URI)}` +
-    `&response_type=code` +
-    `&scope=https://www.googleapis.com/auth/analytics.readonly` +
-    `&access_type=offline` +
-    `&prompt=consent` +
-    `&state=${state}`;
-
-  const googleSearchAuthUrl =
-    "https://accounts.google.com/o/oauth2/v2/auth" +
-    `?client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(
-      process.env.NEXT_PUBLIC_GOOGLE_SEARCH_CONSOLE_REDIRECT_URI
-    )}` +
-    `&response_type=code` +
-    `&scope=${encodeURIComponent(
-      "https://www.googleapis.com/auth/webmasters.readonly"
-    )}` +
-    `&access_type=offline` +
-    `&prompt=consent` +
-    `&include_granted_scopes=true` +
-    `&state=${state}`;
-
-  const stripeAuthUrl = user ? `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID}&scope=read_write&user_id=${user.id}` : '#';
-
-  if (error)
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-red-600 text-2xl">⚠</span>
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to load data</h3>
-          <p className="text-sm text-gray-600">{error}</p>
-        </div>
-      </div>
-    )
-
-  return (
-    <div style={{ fontFamily: "var(--font-story-script)" }} className="mt-16 min-h-screen bg-white relative">
-      {loading && (
-        <div className="flex inset-0 absolute z-50 flex-row items-center justify-center">
-          <p className="text-2xl font-bold text-black">Loading...</p>
-        </div>
-      )}
-      <div className={`max-w-[1500px] mx-auto px-6 py-8 ${loading ? 'blur-sm' : ''}`}>
-        <Integrations 
-          integrationStatus={integrationStatus} 
-          googleAuthUrl={googleAuthUrl} 
-          googleSearchAuthUrl={googleSearchAuthUrl} 
-          stripeAuthUrl={stripeAuthUrl} 
-        />
-        <div className="mb-8">
-          <h1 className="text-5xl font-normal text-[#202124] mb-1"><span className="font-bold">{siteUrl}</span> Performance</h1>
-          <p className="text-lg text-[#5f6368]">Search results performance</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 font-bold lg:grid-cols-4 gap-4 mb-6">
-          <MetricCard title="Total clicks" value={overview.clicks.toLocaleString()} color="blue" change={overview.clicksChange} active={activeMetrics.clicks} onClick={() => toggleMetric('clicks')} />
-          <MetricCard title="Total impressions" value={overview.impressions.toLocaleString()} color="purple" change={overview.impressionsChange} active={activeMetrics.impressions} onClick={() => toggleMetric('impressions')} />
-          <MetricCard
-            title="Average CTR"
-            value={`${(Number.parseFloat(overview.ctr) * 100).toFixed(2)}%`}
-            color="green"
-            change={overview.ctrChange}
-            active={activeMetrics.ctr}
-            onClick={() => toggleMetric('ctr')}
-          />
-          <MetricCard title="Average position" value={Number.parseFloat(overview.position).toFixed(1)} color="orange" change={overview.positionChange} active={activeMetrics.position} onClick={() => toggleMetric('position')} />
-        </div>
-
-        <div className="mb-6 flex items-center gap-3">
-          <span className="text-lg text-[#5f6368] font-medium">Date:</span>
-          <div className="flex gap-2">
-            {DATE_PRESETS.map((r) => (
-              <button
-                key={r.value}
-                onClick={() => setRange(r.value)}
-                className={`px-4 py-1.5 rounded-full text-lg border-2 cursor-pointer font-medium transition-all ${
-                  range === r.value
-                    ? "bg-[#e8f0fe] text-[#1967d2] border border-[#1967d2]"
-                    : "bg-white text-[#5f6368] border border-[#dadce0] hover:bg-[#f8f9fa] hover:border-[#5f6368]"
-                }`}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white border border-[#dadce0] rounded-lg p-6 mb-6 shadow-sm">
-          <div className="mb-4">
-            <h3 className="text-sm font-medium text-[#202124] mb-1">Performance over time</h3>
-            <p className="text-xs text-[#5f6368]">Total clicks and impressions</p>
-          </div>
-          <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
-                <XAxis
-                  dataKey="keys[0]"
-                  stroke="#5f6368"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={{ stroke: "#e0e0e0" }}
-                  tickFormatter={(tick) => new Date(tick).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' })}
-                />
-                <YAxis yAxisId="left" label={{ value: 'Clicks', angle: -90, position: 'insideLeft', fill: '#5f6368' }} stroke="#1967d2" />
-                <YAxis yAxisId="right" orientation="right" label={{ value: 'Impressions', angle: -90, position: 'insideRight', fill: '#5f6368' }} stroke="#8430ce" />
-                <YAxis yAxisId="ctr" orientation="right" dataKey="ctr" stroke="#188038" hide={true} />
-                <YAxis yAxisId="position" orientation="right" dataKey="position" stroke="#e37400" hide={true} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "white",
-                    border: "1px solid #dadce0",
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  }}
-                  labelStyle={{ color: "#202124", fontWeight: 500 }}
-                />
-                {activeMetrics.clicks && <Line yAxisId="left" type="monotone" dataKey="clicks" stroke="#1967d2" strokeWidth={2} dot={false} />}
-                {activeMetrics.impressions && <Line yAxisId="right" type="monotone" dataKey="impressions" stroke="#8430ce" strokeWidth={2} dot={false} />}
-                {activeMetrics.ctr && <Line yAxisId="ctr" type="monotone" dataKey="ctr" stroke="#188038" strokeWidth={2} dot={false} />}
-                {activeMetrics.position && <Line yAxisId="position" type="monotone" dataKey="position" stroke="#e37400" strokeWidth={2} dot={false} />}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-
-
-
-        <div className="border-b border-[#dadce0] mb-6">
-          <div className="flex gap-8">
-            {["QUERIES", "PAGES", "COUNTRIES", "DEVICES"].map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`pb-3 text-sm font-medium transition-colors relative ${
-                  tab === t ? "text-[#1967d2]" : "text-[#5f6368] hover:text-[#202124]"
-                }`}
-              >
-                {t}
-                {tab === t && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1967d2]"></div>}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {tab === "QUERIES" && (
-          <div className="bg-white border border-[#dadce0] rounded-lg overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-[#f8f9fa] border-b border-[#dadce0]">
-                    <th className="px-6 py-3 text-left text-xl font-medium text-[#5f6368] uppercase tracking-wider">
-                      Top queries
-                    </th>
-                    <th className="px-6 py-3 text-right text-xl font-medium text-[#5f6368] uppercase tracking-wider">
-                      Clicks
-                    </th>
-                    <th className="px-6 py-3 text-right text-xl font-medium text-[#5f6368] uppercase tracking-wider">
-                      Impressions
-                    </th>
-                    <th className="px-6 py-3 text-right text-xl font-medium text-[#5f6368] uppercase tracking-wider">
-                      CTR
-                    </th>
-                    <th className="px-6 py-3 text-right text-xl font-medium text-[#5f6368] uppercase tracking-wider">
-                      Position
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#e0e0e0]">
-                  {queries.slice(0, 20).map((q, i) => (
-                    <tr key={i} className="hover:bg-[#f8f9fa] transition-colors">
-                      <td className="px-6 py-4 text-sm text-[#202124]">
-                        <div className="flex items-center gap-3">
-                          <span className="text-[#5f6368] font-mono text-xs">{i + 1}</span>
-                          <span className="text-lg font-medium">{q.keys[0]}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-xl text-right text-[#202124] font-medium">
-                        {q.clicks.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-right text-[#5f6368]">{q.impressions.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-sm text-right text-[#202124]">{(q.ctr * 100).toFixed(2)}%</td>
-                      <td className="px-6 py-4 text-sm text-right">
-                        <span className="inline-flex items-center gap-1">
-                          <span className="text-[#202124] font-medium">{q.position.toFixed(1)}</span>
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {queries.length === 0 && (
-              <div className="py-12 text-center">
-                <p className="text-sm text-[#5f6368]">No query data available for this period</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {tab === "COUNTRIES" && (
-  <div className="bg-white border border-[#dadce0] rounded-lg overflow-hidden shadow-sm">
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="bg-[#f8f9fa] border-b border-[#dadce0]">
-            <th className="px-6 py-3 text-left text-xl font-medium text-[#5f6368] uppercase tracking-wider">
-              Country
-            </th>
-            <th className="px-6 py-3 text-right text-xl font-medium text-[#5f6368] uppercase tracking-wider">
-              Clicks
-            </th>
-            <th className="px-6 py-3 text-right text-xl font-medium text-[#5f6368] uppercase tracking-wider">
-              Impressions
-            </th>
-          </tr>
-        </thead>
-
-        <tbody className="divide-y divide-[#e0e0e0]">
-          {countries.slice(0, 20).map((c, i) => (
-            <tr key={i} className="hover:bg-[#f8f9fa] transition-colors">
-              <td className="px-6 py-4 text-sm text-[#202124]">
-                <div className="flex items-center gap-3">
-                  <span className="text-[#5f6368] font-mono text-xs">
-                    {i + 1}
-                  </span>
-                  {/* <span className="text-lg font-medium">
-                    {getCountryName(c.keys[0])}
-                  </span> */}
-                  <span className="text-xl text-[#00000] uppercase">
-                    ({c.keys[0]})
-                  </span>
-                </div>
-              </td>
-
-              <td className="px-6 py-4 text-xl text-right text-[#202124] font-medium">
-                {c.clicks.toLocaleString()}
-              </td>
-
-              <td className="px-6 py-4 text-xl text-right text-[#5f6368]">
-                {c.impressions.toLocaleString()}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-
-    {countries.length === 0 && (
-      <div className="py-12 text-center">
-        <p className="text-sm text-[#5f6368]">
-          No country data available for this period
-        </p>
-      </div>
-    )}
-  </div>
-)}
-
-        {tab !== "QUERIES" && "COUNTRY" && (
-          <div className="bg-white border border-[#dadce0] rounded-lg p-12 text-center">
-            <p className="text-sm text-[#5f6368]">{tab} view coming soon</p>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function MetricCard({ title, value, color, change, active, onClick }) {
-  const colorStyles = {
-    blue: {
-      text: "text-[#1967d2]",
-      border: "border-l-[#1967d2]",
-      bg: "bg-blue-50",
-      darkBg: "bg-blue-100",
-    },
-    purple: {
-      text: "text-[#8430ce]",
-      border: "border-l-[#8430ce]",
-      bg: "bg-purple-50",
-      darkBg: "bg-purple-100",
-    },
-    green: {
-      text: "text-[#188038]",
-      border: "border-l-[#188038]",
-      bg: "bg-green-50",
-      darkBg: "bg-green-100",
-    },
-    orange: {
-      text: "text-[#e37400]",
-      border: "border-l-[#e37400]",
-      bg: "bg-orange-50",
-      darkBg: "bg-orange-100",
-    },
+    );
   }
 
-  const isPositive = change >= 0
+  if (seoData.error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-red-500">Error: {seoData.error}</div>
+      </div>
+    );
+  }
+
+  // Check if no Search Console site is selected
+  if (!seoData.siteUrl || seoData.siteUrl.trim() === "") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md w-full p-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight mb-4">
+              No Search Console Account Connected
+            </h1>
+            <p className="text-muted-foreground mb-8">
+              You need to connect your Google Search Console account to view SEO performance data. Please select a site and connect your account to get started.
+            </p>
+            <div className="space-y-4">
+              <button 
+                onClick={() => window.location.href = "/dashboard"}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                Back to Overview
+              </button>
+              <button 
+                onClick={() => window.location.href = "/dashboard/analytics"}
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Connect Google Analytics
+              </button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Need help? Visit our <a href="/dashboard" className="text-blue-600 hover:underline">overview</a> to manage your integrations.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <button
-      onClick={onClick}
-      className={`w-full text-left border border-transparent border-l-4 ${colorStyles[color].border} ${active ? colorStyles[color].darkBg : colorStyles[color].bg} rounded-lg p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer relative`}
-    >
-      <div className={`absolute top-3 right-3 rounded-full h-5 w-5 flex items-center justify-center ${active ? 'bg-white' : 'bg-white border-2 border-black'}`}>
-        <svg className={`h-4 w-4 ${active ? colorStyles[color].text : 'text-white'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-        </svg>
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
+      <DashboardSidebar />
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col lg:ml-72">
+        <DashboardTopbar />
+
+        <main className="flex-1 p-4 md:p-6 lg:p-8 space-y-6">
+          {/* Page Header */}
+          <div className="animate-fade-up">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-xs font-medium text-emerald-600">Live</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">Last updated 2 min ago</span>
+                </div>
+                <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight">
+                  {seoData.siteUrl || "Your Site"}
+                </h1>
+                <p className="text-muted-foreground mt-1">Search Console Performance Overview</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <select 
+                  value={seoData.selectedRange}
+                  onChange={handleRangeChange}
+                  className="px-4 py-2 rounded-xl border border-border bg-card text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent/50"
+                >
+                  {DATE_RANGES.map(range => (
+                    <option key={range.value} value={range.value}>
+                      {range.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Bento Grid Metrics */}
+          <MetricsBento metrics={seoData.summary} />
+
+          {/* Charts & Insights Row */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div className="xl:col-span-2">
+              <PerformanceChart data={seoData.chartData} selectedRange={seoData.selectedRange} />
+            </div>
+            <QuickInsights data={seoData.summary} />
+          </div>
+
+          {/* Data Table */}
+          <QueriesTable 
+            queries={seoData.queries} 
+            pages={seoData.pages} 
+            countries={seoData.countries} 
+            devices={seoData.devices} 
+          />
+        </main>
       </div>
-      <p className="text-xs font-medium text-[#5f6368] uppercase tracking-wide mb-1">{title}</p>
-      <p className={`text-5xl font-bold ${colorStyles[color].text} tracking-tight`}>
-        {value}
-      </p>
-      <div className={`flex items-center text-sm tracking-wide mt-2 text-[#5f6368]`}>
-        <span className={`${isPositive ? "text-green-600" : "text-red-600"}`}>{isPositive ? "▲" : "▼"} {typeof change === 'number' ? change.toFixed(0) : 0}%</span>
-        <span className="ml-1">vs previous</span>
-      </div>
-    </button>
-  )
+    </div>
+  );
 }

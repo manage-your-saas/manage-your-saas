@@ -94,38 +94,47 @@ export default function AnalyticsPage() {
   if (error) return <p className="text-red-500">{error}</p>;
 
   return (
-    <div className="p-6 space-y-6 text-black max-w-3xl">
-      <h1 className="text-2xl font-bold">
-        Select your Google Analytics Property
-      </h1>
-
-      {properties.length === 0 && (
-        <p>No Google Analytics properties found.</p>
-      )}
-
-      <ul className="space-y-3">
-        {properties.map((prop) => (
-          <li
-            key={prop.id}
-            className="border rounded-lg p-4 flex justify-between items-center"
-          >
-            <div>
-              <p className="font-medium">{prop.name}</p>
-              <p className="text-sm text-gray-500">{prop.account}</p>
-              <p className="text-xs text-gray-400">
-                Property ID: {prop.id}
-              </p>
-            </div>
-
-            <button
-              onClick={() => handleSelect(prop.id)}
-              className="px-4 py-2 border rounded hover:bg-black hover:text-white transition"
-            >
-              Use
-            </button>
-          </li>
-        ))}
-      </ul>
+   <div className="min-h-screen flex items-center justify-center bg-gray-50">
+  <div className="p-6 space-y-6 text-black max-w-3xl w-full">
+    {/* Logo */}
+    <div className="flex justify-center mb-8">
+      <img src="/myslogo.svg" alt="ManageYourSaaS" className="h-12 w-auto" />
     </div>
+    
+    <h1 className="text-2xl font-bold text-center">
+      Select your Google Analytics Property
+    </h1>
+
+    {properties.length === 0 && (
+      <p className="text-center">No Google Analytics properties found.</p>
+    )}
+
+    <ul className="space-y-3">
+      {properties.map((prop) => (
+        <li
+          key={prop.id}
+          className="border rounded-lg p-4 flex justify-between items-center"
+        >
+          <div>
+            <p className="font-medium">{prop.name}</p>
+            <p className="text-sm text-gray-500">{prop.account}</p>
+            <p className="text-xs text-gray-400">
+              Property ID: {prop.id}
+            </p>
+          </div>
+
+          <button
+            onClick={() => handleSelect(prop.id)}
+            className="px-4 py-2 border rounded hover:bg-black hover:text-white transition"
+          >
+            Use
+          </button>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+
+
   );
 }
