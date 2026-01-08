@@ -80,7 +80,7 @@ export default function Pricing() {
           {plans.map((plan) => {
             const Icon = plan.icon;
             return (
-              <Card
+              <div
                 key={plan.name}
                 className={`relative flex flex-col ${
                   plan.popular
@@ -100,61 +100,56 @@ export default function Pricing() {
                     Best Value
                   </Badge>
                 )}
-
-                <CardHeader className="text-center pb-2">
+                <div className="text-center mb-6">
                   <div className="mx-auto mb-4 p-3 rounded-full bg-muted w-fit">
                     <Icon className={`w-6 h-6 ${plan.lifetime ? "text-amber-500" : "text-primary"}`} />
                   </div>
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <CardDescription className="text-lg text-center">{plan.description}</CardDescription>
-                </CardHeader>
+                  <h3 className="text-2xl">{plan.name}</h3>
+                  <p className="text-lg text-center">{plan.description}</p>
+                </div>
 
-                <CardContent className="flex-1">
-                  <div className="text-center mb-6">
-                    <span className="text-4xl font-bold text-foreground">{plan.price}</span>
-                    <span className="text-muted-foreground ml-1">{plan.period}</span>
-                  </div>
+                <div className="text-center mb-6">
+                  <span className="text-4xl font-bold text-foreground">{plan.price}</span>
+                  <span className="text-muted-foreground ml-1">{plan.period}</span>
+                </div>
 
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <Check
-                          className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                            feature.included
-                              ? feature.comingSoon
+                <ul className="space-y-3">
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-3">
+                      <Check
+                        className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+                          feature.included
+                            ? feature.comingSoon
                                 ? "text-amber-500"
                                 : "text-green-500"
                               : "text-muted-foreground/30"
                           }`}
-                        />
-                        <span
-                          className={`text-lg ${feature.bg} p-1 rounded  ${
-                            feature.included ? "text-foreground" : "text-muted-foreground line-through"
-                          }`}
-                        >
-                          {feature.text}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
+                      />
+                      <span
+                        className={`text-lg ${feature.bg} p-1 rounded  ${
+                          feature.included ? "text-foreground" : "text-muted-foreground line-through"
+                        }`}
+                      >
+                        {feature.text}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
 
-                <CardFooter>
-                  <Button
-                    className={`w-full border-2 border-black ${
-                      plan.lifetime
-                        ? "bg-amber-500 hover:bg-amber-600 text-white"
-                        : plan.popular
+                <Button
+                  className={`w-full border-2 border-black ${
+                    plan.lifetime
+                      ? "bg-amber-500 hover:bg-amber-600 text-white"
+                      : plan.popular
                         ? ""
                         : "variant-outline"
-                    }`}
-                    variant={plan.popular || plan.lifetime ? "default" : "outline"}
-                  >
-                    {plan.cta}
-                  </Button>
-                </CardFooter>
-                <CardDescription className="text-lg text-muted-foreground text-center">{plan.limit}</CardDescription>
-              </Card>
+                  }`}
+                  variant={plan.popular || plan.lifetime ? "default" : "outline"}
+                >
+                  {plan.cta}
+                </Button>
+                <p className="text-lg text-muted-foreground text-center">{plan.limit}</p>
+              </div>
             );
           })}
         </div>
