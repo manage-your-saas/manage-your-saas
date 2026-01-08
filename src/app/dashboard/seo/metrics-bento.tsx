@@ -2,50 +2,18 @@
 
 import { MousePointerClick, Eye, Percent, TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react"
 
-const metrics = [
-  {
-    id: "clicks",
-    label: "Total Clicks",
-    value: 7,
-    change: 12.5,
-    sparkline: [3, 5, 4, 7, 6, 8, 7],
-    icon: MousePointerClick,
-    gradient: "from-blue-500 to-cyan-400",
-    bgGradient: "from-blue-500/10 to-cyan-400/10",
-  },
-  {
-    id: "impressions",
-    label: "Impressions",
-    value: 92,
-    change: 8.3,
-    sparkline: [40, 55, 48, 72, 68, 85, 92],
-    icon: Eye,
-    gradient: "from-emerald-500 to-teal-400",
-    bgGradient: "from-emerald-500/10 to-teal-400/10",
-  },
-  {
-    id: "ctr",
-    label: "Avg. CTR",
-    value: 7.61,
-    suffix: "%",
-    change: -2.1,
-    sparkline: [8.2, 7.8, 8.5, 7.2, 7.9, 7.4, 7.61],
-    icon: Percent,
-    gradient: "from-amber-500 to-orange-400",
-    bgGradient: "from-amber-500/10 to-orange-400/10",
-  },
-  {
-    id: "position",
-    label: "Avg. Position",
-    value: 4.8,
-    change: 15.2,
-    sparkline: [6.2, 5.8, 5.4, 5.1, 4.9, 4.8, 4.8],
-    icon: TrendingUp,
-    gradient: "from-rose-500 to-pink-400",
-    bgGradient: "from-rose-500/10 to-pink-400/10",
-    invertChange: true,
-  },
-]
+interface MetricsBentoProps {
+  metrics?: {
+    clicks: number
+    impressions: number
+    ctr: number
+    position: number
+    clicksChange?: number
+    impressionsChange?: number
+    ctrChange?: number
+    positionChange?: number
+  }
+}
 
 function Sparkline({ data, color }: { data: number[]; color: string }) {
   const max = Math.max(...data)
@@ -75,10 +43,65 @@ function Sparkline({ data, color }: { data: number[]; color: string }) {
   )
 }
 
-export function MetricsBento() {
+export function MetricsBento({ metrics }: MetricsBentoProps) {
+  if (!metrics) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-40 bg-muted/20 rounded-2xl animate-pulse" />
+        ))}
+      </div>
+    )
+  }
+
+  const metricsData = [
+    {
+      id: "clicks",
+      label: "Total Clicks",
+      value: metrics.clicks?.toLocaleString() || "0",
+      change: metrics.clicksChange || 0,
+      icon: MousePointerClick,
+      gradient: "from-blue-500 to-cyan-400",
+      bgGradient: "from-blue-500/10 to-cyan-400/10",
+      sparkline: Array(7).fill(0).map(() => Math.floor(Math.random() * 20) + 5), // Sample sparkline data
+    },
+    {
+      id: "impressions",
+      label: "Impressions",
+      value: metrics.impressions?.toLocaleString() || "0",
+      change: metrics.impressionsChange || 0,
+      icon: Eye,
+      gradient: "from-emerald-500 to-teal-400",
+      bgGradient: "from-emerald-500/10 to-teal-400/10",
+      sparkline: Array(7).fill(0).map(() => Math.floor(Math.random() * 30) + 20), // Sample sparkline data
+    },
+    {
+      id: "ctr",
+      label: "Avg. CTR",
+      value: metrics.ctr ? (metrics.ctr * 100).toFixed(2) : "0.00",
+      suffix: "%",
+      change: metrics.ctrChange || 0,
+      icon: Percent,
+      gradient: "from-amber-500 to-orange-400",
+      bgGradient: "from-amber-500/10 to-orange-400/10",
+      sparkline: Array(7).fill(0).map(() => 5 + Math.random() * 5), // Sample sparkline data
+    },
+    {
+      id: "position",
+      label: "Avg. Position",
+      value: metrics.position?.toFixed(1) || "0.0",
+      change: metrics.positionChange || 0,
+      icon: TrendingUp,
+      gradient: "from-rose-500 to-pink-400",
+      bgGradient: "from-rose-500/10 to-pink-400/10",
+      invertChange: true,
+      sparkline: Array(7).fill(0).map((_, i) => 10 - i + (Math.random() * 2 - 1)), // Sample sparkline data
+    },
+  ]
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {metrics.map((metric, index) => {
+      {metricsData.map((metric, index) => {
         const Icon = metric.icon
         const isPositive = metric.invertChange ? metric.change > 0 : metric.change > 0
         const displayPositive = metric.invertChange ? metric.change > 0 : metric.change > 0
@@ -89,7 +112,6 @@ export function MetricsBento() {
             className="group relative overflow-hidden rounded-2xl bg-card border border-border p-5 hover:shadow-xl hover:shadow-black/5 hover:border-accent/30 transition-all duration-500 animate-fade-up"
             style={{ animationDelay: `${index * 75}ms` }}
           >
-            {/* Background gradient */}
             <div
               className={`absolute inset-0 bg-gradient-to-br ${metric.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
             />

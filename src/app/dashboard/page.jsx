@@ -1,13 +1,14 @@
 "use client"
 
-import { DashboardSidebar } from "./seo-test/dashboard-sidebar"
-import { DashboardTopbar } from "./seo-test/dashboard-topbar"
-import { MetricsBento } from "./seo-test/metrics-bento"
-import { PerformanceChart } from "./seo-test/performance-chart"
-import { QueriesTable } from "./seo-test/queries-table"
-import { QuickInsights } from "./seo-test/quick-insights"
+import { DashboardSidebar } from "./seo/dashboard-sidebar"
+import { DashboardTopbar } from "./seo/dashboard-topbar"
+import { MetricsBento } from "./seo/metrics-bento"
+import { PerformanceChart } from "./seo/performance-chart"
+import { QueriesTable } from "./seo/queries-table"
+import { QuickInsights } from "./seo/quick-insights"
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import Link from "next/link"
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -76,6 +77,35 @@ export default function DashboardPage() {
     }
   }
 
+  // Check search console connection status
+  const checkSearchConsoleStatus = async (user) => {
+    try {
+      const scRes = await fetch(`/api/search-console/status?userId=${user.id}`)
+      const scData = await scRes.json()
+      setSearchConsoleConnected(!!scData?.siteUrl)
+    } catch (err) {
+      console.error('Error checking search console status:', err)
+      setSearchConsoleConnected(false)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Handle search console connection
+  const connectSearchConsole = () => {
+    window.location.href = googleSearchConsoleAuthUrl
+  }
+
+  // Handle google analytics connection
+  const connectGoogleAnalytics = () => {
+    window.location.href = googleAnalyticsAuthUrl
+  }
+
+  // Handle stripe connection
+  const connectStripe = () => {
+    window.location.href = stripeAuthUrl
+  }
+
   // ✅ Auth + load integrations
   useEffect(() => {
     const init = async () => {
@@ -88,14 +118,20 @@ export default function DashboardPage() {
 
       setUser(user)
       await loadIntegrations(user)
+      await checkSearchConsoleStatus(user)
       setLoading(false)
     }
 
     init()
   }, [router])
 
-  if (loading) return <p className="text-center mt-20">Loading…</p>
-  if (!user) return null
+  if (loading || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
+      </div>
+    )
+  }
 
   /* ---------------- OAuth URLs ---------------- */
 
@@ -134,58 +170,8 @@ export default function DashboardPage() {
     `&client_id=${process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID}` +
     `&scope=read_write` +
     `&state=${state}`
-  
 
-  // Check search console connection status
-  const checkSearchConsoleStatus = async (user) => {
-    try {
-      const scRes = await fetch(`/api/search-console/status?userId=${user.id}`)
-      const scData = await scRes.json()
-      setSearchConsoleConnected(!!scData?.siteUrl)
-    } catch (err) {
-      console.error('Error checking search console status:', err)
-      setSearchConsoleConnected(false)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Handle search console connection
-  const connectSearchConsole = () => {
-    const state = encodeURIComponent(JSON.stringify({ userId: user.id }))
-    const googleSearchConsoleAuthUrl =
-      `https://accounts.google.com/o/oauth2/v2/auth` +
-      `?client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}` +
-      `&redirect_uri=${encodeURIComponent(
-        process.env.NEXT_PUBLIC_GOOGLE_SEARCH_CONSOLE_REDIRECT_URI
-      )}` +
-      `&response_type=code` +
-      `&scope=${encodeURIComponent(
-        'https://www.googleapis.com/auth/webmasters.readonly'
-      )}` +
-      `&access_type=offline` +
-      `&prompt=consent` +
-      `&include_granted_scopes=true` +
-      `&state=${state}`
-    
-    window.location.href = googleSearchConsoleAuthUrl
-  }
-
-  // Initialize
-  useEffect(() => {
-    const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
-        return
-      }
-      setUser(user)
-      await checkSearchConsoleStatus(user)
-    }
-    init()
-  }, [router])
-
-  if (isLoading || loading) {
+  if (loading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
@@ -199,70 +185,150 @@ export default function DashboardPage() {
       <div className="flex-1 flex flex-col lg:ml-72">
         <DashboardTopbar />
         <main className="flex-1 p-4 md:p-6 lg:p-8 space-y-6">
-          {searchConsoleConnected ? (
-            <>
-              <div className="animate-fade-up">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-xs font-medium text-emerald-600">Connected</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">Last updated 2 min ago</span>
-                    </div>
-                    <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight">interfreight.in</h1>
-                    <p className="text-muted-foreground mt-1">Search Console Performance Overview</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <select className="px-4 py-2 rounded-xl border border-border bg-card text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent/50">
-                      <option>Last 28 days</option>
-                      <option>Last 7 days</option>
-                      <option>Last 3 months</option>
-                      <option>Last 12 months</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+          {/* Welcome Section */}
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+              Welcome back, {user?.user_metadata?.display_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'User'}! 👋
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Manage your SaaS integrations and analytics all in one place. Connect your favorite services and unlock powerful insights for your business.
+            </p>
+          </div>
 
-              <MetricsBento />
-
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="xl:col-span-2">
-                  <PerformanceChart />
-                </div>
-                <QuickInsights />
-              </div>
-
-              <QueriesTable />
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
-              <div className="bg-card p-8 rounded-2xl border border-border max-w-md w-full">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          {/* Integration Status Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Search Console Card */}
+            <div className="bg-card rounded-xl border border-border p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-bold mb-2">Connect Search Console</h2>
-                <p className="text-muted-foreground mb-6">Connect your Google Search Console account to view search analytics and performance metrics for your website.</p>
-                <button
-                  onClick={connectSearchConsole}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" />
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                  </svg>
-                  Connect with Google
-                </button>
-                <p className="text-xs text-muted-foreground mt-4">We'll only request access to your search console data</p>
+                {integrationStatus.google_search_console === 'connected' ? (
+                  <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Connected</span>
+                ) : (
+                  <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">Not Connected</span>
+                )}
               </div>
+              <h3 className="font-semibold mb-2">Search Console</h3>
+              <p className="text-sm text-muted-foreground mb-4">Google Search Console integration for SEO performance</p>
+              {integrationStatus.google_search_console === 'connected' ? (
+                <button 
+                  onClick={() => router.push('/dashboard/seo')}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                >
+                  View Dashboard
+                </button>
+              ) : (
+                <button 
+                  onClick={connectSearchConsole}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                >
+                  Connect
+                </button>
+              )}
             </div>
-          )}
-        </main>
+
+            {/* Google Analytics Card */}
+            <div className="bg-card rounded-xl border border-border p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                {integrationStatus.google_analytics === 'connected' ? (
+                  <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Connected</span>
+                ) : (
+                  <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">Not Connected</span>
+                )}
+              </div>
+              <h3 className="font-semibold mb-2">Google Analytics</h3>
+              <p className="text-sm text-muted-foreground mb-4">Website traffic and user behavior analytics</p>
+              {integrationStatus.google_analytics === 'connected' ? (
+                <button 
+                  onClick={() => router.push('/dashboard/analytics')}
+                  className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                >
+                  View Dashboard
+                </button>
+              ) : (
+                <button 
+                  onClick={connectGoogleAnalytics}
+                  className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                >
+                  Connect
+                </button>
+              )}
+            </div>
+
+            {/* Stripe Card */}
+            <div className="bg-card rounded-xl border border-border p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-violet-100 rounded-lg flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                </div>
+                {integrationStatus.stripe === 'connected' ? (
+                  <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Connected</span>
+                ) : (
+                  <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">Not Connected</span>
+                )}
+              </div>
+              <h3 className="font-semibold mb-2">Stripe</h3>
+              <p className="text-sm text-muted-foreground mb-4">Payment processing and subscription management</p>
+              {integrationStatus.stripe === 'connected' ? (
+                <button 
+                  onClick={() => router.push('/dashboard/stripe')}
+                  className="w-full bg-violet-600 hover:bg-violet-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                >
+                  View Dashboard
+                </button>
+              ) : (
+                <button 
+                  onClick={connectStripe}
+                  className="w-full bg-violet-600 hover:bg-violet-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                >
+                  Connect
+                </button>
+              )}
+            </div>
+
+            {/* Add More Integration Card */}
+            <div className="bg-card rounded-xl border-dashed border-border p-6 flex flex-col items-center justify-center text-center">
+              <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+              <h3 className="font-semibold mb-2">More Coming Soon</h3>
+              <p className="text-sm text-muted-foreground">Additional integrations are on the way</p>
+            </div>
+          </div>
+
+          {/* Quick Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-card rounded-xl border border-border p-6">
+              <h3 className="font-semibold mb-4">Active Integrations</h3>
+              <div className="text-3xl font-bold text-foreground">
+                {Object.values(integrationStatus).filter(status => status === 'connected').length}
+              </div>
+              
+            </div>
+            <div className="bg-card rounded-xl border border-border p-6">
+              <h3 className="font-semibold mb-4">Total Services</h3>
+              <div className="text-3xl font-bold text-foreground">3</div>
+              <p className="text-sm text-muted-foreground">Available integrations</p>
+            </div>
+            <div className="bg-card rounded-xl border border-border p-6">
+              <h3 className="font-semibold mb-4">Account Status</h3>
+              <div className="text-3xl font-bold text-emerald-600">Active</div>
+              <p className="text-sm text-muted-foreground">All systems operational</p>
+            </div>
+          </div>
+          </main>
       </div>
     </div>
   )

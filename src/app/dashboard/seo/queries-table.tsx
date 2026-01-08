@@ -10,23 +10,39 @@ const tabs = [
   { id: "devices", label: "Devices", icon: Monitor },
 ]
 
-const queriesData = [
-  { rank: 1, query: "inter freight", clicks: 1, impressions: 5, ctr: 20.0, position: 4.8 },
-  { rank: 2, query: "interfreight forwarders", clicks: 1, impressions: 13, ctr: 7.69, position: 5.0 },
-  { rank: 3, query: "forwarder in logistics", clicks: 0, impressions: 1, ctr: 0.0, position: 2.0 },
-  { rank: 4, query: "inter freight inc", clicks: 0, impressions: 2, ctr: 0.0, position: 8.0 },
-  { rank: 5, query: "inter freight logistics", clicks: 0, impressions: 1, ctr: 0.0, position: 10.0 },
-  { rank: 6, query: "interfreight", clicks: 0, impressions: 1, ctr: 0.0, position: 7.0 },
-  { rank: 7, query: "interfreight forwarders pvt ltd", clicks: 0, impressions: 7, ctr: 0.0, position: 5.4 },
-]
+interface DataRow {
+  keys: string[];
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+}
 
-export function QueriesTable() {
+interface QueriesTableProps {
+  queries: DataRow[];
+  pages: DataRow[];
+  countries: DataRow[];
+  devices: DataRow[];
+}
+
+export function QueriesTable({ queries = [], pages = [], countries = [], devices = [] }: QueriesTableProps) {
   const [activeTab, setActiveTab] = useState("queries")
   const [searchQuery, setSearchQuery] = useState("")
   const [sortBy, setSortBy] = useState<string | null>(null)
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
 
-  const filteredData = queriesData.filter((item) => item.query.toLowerCase().includes(searchQuery.toLowerCase()))
+  const dataMap = {
+    queries,
+    pages,
+    countries,
+    devices,
+  };
+
+  const activeData = dataMap[activeTab as keyof typeof dataMap] || [];
+
+  const filteredData = activeData.filter((item) => 
+    item.keys[0].toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const sortedData = [...filteredData].sort((a, b) => {
     if (!sortBy) return 0
@@ -83,7 +99,7 @@ export function QueriesTable() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Filter queries..."
+              placeholder={`Filter ${activeTab}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-muted/50 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent focus:bg-background transition-all"
@@ -101,7 +117,7 @@ export function QueriesTable() {
           <thead>
             <tr className="border-b border-border bg-muted/50">
               <th className="text-left px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Query
+                {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
               </th>
               <th className="text-right px-4 py-4">
                 <button
@@ -142,17 +158,17 @@ export function QueriesTable() {
             </tr>
           </thead>
           <tbody>
-            {sortedData.map((row) => (
+            {sortedData.map((row, index) => (
               <tr
-                key={row.rank}
+                key={`${activeTab}-${row.keys[0]}`}
                 className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors group"
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <span className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground">
-                      {row.rank}
+                      {index + 1}
                     </span>
-                    <span className="font-medium group-hover:text-accent transition-colors">{row.query}</span>
+                    <span className="font-medium group-hover:text-accent transition-colors">{row.keys[0]}</span>
                     <ExternalLink className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </td>
@@ -168,7 +184,7 @@ export function QueriesTable() {
                       row.ctr > 0 ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    {row.ctr.toFixed(1)}%
+                    {(row.ctr * 100).toFixed(1)}%
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right">

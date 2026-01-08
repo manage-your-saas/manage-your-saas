@@ -1,9 +1,9 @@
-import { DashboardSidebar } from "@/app/dashboard/seo-test/dashboard-sidebar"
-import { DashboardTopbar } from "@/app/dashboard/seo-test/dashboard-topbar"
-import { MetricsBento } from "@/app/dashboard/seo-test/metrics-bento"
+import { DashboardSidebar } from "@/app/dashboard/seo/dashboard-sidebar"
+import { DashboardTopbar } from "@/app/dashboard/seo/dashboard-topbar"
+import { MetricsBento } from "@/app/dashboard/seo/metrics-bento"
 import { PerformanceChart } from "./performance-chart"
-import { QueriesTable } from "@/app/dashboard/seo-test/queries-table"
-import { QuickInsights } from "@/app/dashboard/seo-test/quick-insights"
+import { QueriesTable } from "@/app/dashboard/seo/queries-table"
+import { QuickInsights } from "@/app/dashboard/seo/quick-insights"
 
 export default function DashboardPage() {
   return (

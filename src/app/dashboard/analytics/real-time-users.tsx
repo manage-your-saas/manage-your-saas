@@ -2,18 +2,15 @@
 
 import { Activity, Users, Monitor, Smartphone, Tablet } from "lucide-react"
 
-const activePages = [
-  { page: "/pricing", users: 12 },
-  { page: "/features", users: 8 },
-  { page: "/", users: 15 },
-  { page: "/blog/seo-tips", users: 6 },
-  { page: "/docs", users: 6 },
-]
 
-export function RealTimeUsers() {
+interface RealTimeUsersProps {
+  realTimeUsers: number;
+}
+
+export function RealTimeUsers({ realTimeUsers }: RealTimeUsersProps) {
   return (
     <div
-      className="bg-gradient-to-r from-blue-500/10 via-violet-500/10 to-cyan-500/10 rounded-2xl border border-blue-500/20 p-4 animate-fade-up"
+      className="bg-linear-to-r from-blue-500/10 via-violet-500/10 to-cyan-500/10 rounded-2xl border border-blue-500/20 p-4 animate-fade-up"
       style={{ animationDelay: "50ms" }}
     >
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -27,7 +24,7 @@ export function RealTimeUsers() {
           </div>
           <div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-heading font-bold">47</span>
+              <span className="text-3xl font-heading font-bold">{realTimeUsers}</span>
               <span className="text-sm text-muted-foreground">users online</span>
             </div>
             <p className="text-sm text-muted-foreground">Real-time active visitors</p>
@@ -53,22 +50,7 @@ export function RealTimeUsers() {
           </div>
         </div>
 
-        {/* Active Pages */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {activePages.map((item) => (
-            <div
-              key={item.page}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background/50 border border-border whitespace-nowrap"
-            >
-              <span className="text-xs font-medium truncate max-w-24">{item.page}</span>
-              <span className="flex items-center gap-1 text-xs text-blue-600 font-semibold">
-                <Users className="w-3 h-3" />
-                {item.users}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+              </div>
     </div>
   )
 }

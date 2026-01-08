@@ -1,14 +1,22 @@
 "use client"
 
-import { Globe, Search, Share2, Mail, MousePointerClick } from "lucide-react"
+import React from 'react';
+import { Globe, Search, Share2, Mail, MousePointerClick } from "lucide-react";
 
-const sources = [
-  { name: "Organic Search", value: 45, visitors: "5,782", icon: Search, color: "blue" },
-  { name: "Direct", value: 28, visitors: "3,594", icon: Globe, color: "emerald" },
-  { name: "Social Media", value: 15, visitors: "1,927", icon: Share2, color: "violet" },
-  { name: "Referral", value: 8, visitors: "1,028", icon: MousePointerClick, color: "amber" },
-  { name: "Email", value: 4, visitors: "514", icon: Mail, color: "rose" },
-]
+interface TrafficSourcesProps {
+  trafficSources: any[];
+}
+
+const sourceDetailsMap: { [key: string]: { icon: React.ElementType; color: string; name: string } } = {
+  '(direct)': { icon: Globe, color: 'emerald', name: 'Direct' },
+  'google': { icon: Search, color: 'blue', name: 'Google' },
+  'bing': { icon: Search, color: 'cyan', name: 'Bing' },
+  'facebook': { icon: Share2, color: 'violet', name: 'Facebook' },
+  't.co': { icon: Share2, color: 'blue', name: 'Twitter' },
+  'referral': { icon: MousePointerClick, color: 'amber', name: 'Referral' },
+  'email': { icon: Mail, color: 'rose', name: 'Email' },
+  '(other)': { icon: Share2, color: 'gray', name: 'Other' },
+};
 
 const colorMap: Record<string, string> = {
   blue: "bg-blue-500",
@@ -18,7 +26,28 @@ const colorMap: Record<string, string> = {
   rose: "bg-rose-500",
 }
 
-export function TrafficSources() {
+export function TrafficSources({ trafficSources }: TrafficSourcesProps) {
+  if (!trafficSources || trafficSources.length === 0) {
+    return <div className="bg-card rounded-2xl border border-border p-6 h-full animate-pulse"></div>;
+  }
+
+  const totalVisitors = trafficSources.reduce((acc, source) => acc + (source.sessions || 0), 0);
+
+  const sources = trafficSources.map(source => {
+    const sourceName = source.dimension;
+    const details = Object.entries(sourceDetailsMap).find(([key]) => sourceName.includes(key))?.[1] 
+                    || { icon: Globe, color: 'gray', name: sourceName };
+    const visitors = source.sessions || 0;
+    const value = totalVisitors > 0 ? (visitors / totalVisitors) * 100 : 0;
+
+    return {
+      name: details.name,
+      value: value,
+      visitors: visitors.toLocaleString(),
+      icon: details.icon,
+      color: details.color,
+    };
+  }).sort((a, b) => b.value - a.value);
   return (
     <div className="bg-card rounded-2xl border border-border p-6 animate-fade-up" style={{ animationDelay: "250ms" }}>
       <div className="mb-6">
@@ -55,12 +84,12 @@ export function TrafficSources() {
 
                 return acc
               },
-              { elements: [] as JSX.Element[], offset: 0 },
+              { elements: [] as React.ReactElement[], offset: 0 },
             ).elements
           }
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-heading font-bold">12.8K</span>
+          <span className="text-2xl font-heading font-bold">{totalVisitors.toLocaleString()}</span>
           <span className="text-xs text-muted-foreground">Total</span>
         </div>
       </div>
@@ -80,7 +109,7 @@ export function TrafficSources() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-muted-foreground">{source.visitors}</span>
-                <span className="text-sm font-semibold w-10 text-right">{source.value}%</span>
+                <span className="text-sm font-semibold w-10 text-right">{source.value.toFixed(1)}%</span>
               </div>
             </div>
           )

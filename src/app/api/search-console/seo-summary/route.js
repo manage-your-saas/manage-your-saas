@@ -66,34 +66,42 @@ export async function GET(req) {
     // Current period
     const currentEndDate = new Date();
     const currentStartDate = new Date();
-    currentStartDate.setDate(currentEndDate.getDate() - days);
+    currentStartDate.setDate(currentEndDate.getDate() - (days - 1));
 
     // Previous period
-    const previousEndDate = new Date();
-    previousEndDate.setDate(currentStartDate.getDate() - 1);
-    const previousStartDate = new Date();
-    previousStartDate.setDate(previousEndDate.getDate() - days);
+    const previousEndDate = new Date(currentStartDate);
+    previousEndDate.setDate(previousEndDate.getDate() - 1);
+    const previousStartDate = new Date(previousEndDate);
+    previousStartDate.setDate(previousStartDate.getDate() - (days - 1));
 
     /* --------------------------------
        4️⃣ FETCH SEO METRICS
     -------------------------------- */
 
-    const fetchMetricsForPeriod = async (start, end) => {
+    const fetchMetricsForPeriod = async (start, end, dimensions) => {
+      const requestBody = {
+        startDate: formatDate(start),
+        endDate: formatDate(end),
+      };
+      if (dimensions) {
+        requestBody.dimensions = dimensions;
+      }
+
       const res = await searchConsole.searchanalytics.query({
         siteUrl,
-        requestBody: {
-          startDate: formatDate(start),
-          endDate: formatDate(end),
-          rowLimit: 1,
-        },
+        requestBody,
       });
-      return res.data.rows?.[0] || { clicks: 0, impressions: 0, ctr: 0, position: 0 };
+      return res.data.rows || [];
     };
 
-    const [currentData, previousData] = await Promise.all([
+    const [currentDataRows, previousDataRows, dailyData] = await Promise.all([
       fetchMetricsForPeriod(currentStartDate, currentEndDate),
       fetchMetricsForPeriod(previousStartDate, previousEndDate),
+      fetchMetricsForPeriod(currentStartDate, currentEndDate, ["date"]),
     ]);
+
+    const currentData = currentDataRows[0] || { clicks: 0, impressions: 0, ctr: 0, position: 0 };
+    const previousData = previousDataRows[0] || { clicks: 0, impressions: 0, ctr: 0, position: 0 };
 
     /* --------------------------------
        5️⃣ CALCULATE CHANGES & RETURN
@@ -117,6 +125,13 @@ export async function GET(req) {
         ctrChange: calculateChange(currentData.ctr, previousData.ctr),
         positionChange: calculateChange(currentData.position, previousData.position),
       },
+      data: dailyData.map(row => ({
+        date: row.keys[0],
+        clicks: row.clicks,
+        impressions: row.impressions,
+        ctr: row.ctr,
+        position: row.position
+      }))
     });
   } catch (err) {
     console.error("SEO SUMMARY ERROR:", err);

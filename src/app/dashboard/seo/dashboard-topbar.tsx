@@ -27,16 +27,14 @@ export function DashboardTopbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="lg:hidden p-2 rounded-xl hover:bg-muted transition-colors"
+            className="lg:hidden p-2 hover:bg-muted transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>
 
           {/* Mobile Logo */}
-          <Link href="/" className="lg:hidden flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-amber-500 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">M</span>
-            </div>
+          <Link href="/" className="lg:hidden flex items-center">
+            <img src="/myslogo.svg" alt="ManageYourSaaS" className="w-8 h-8" />
           </Link>
 
           {/* Search Bar */}
@@ -91,7 +89,7 @@ export function DashboardTopbar() {
           <div className="fixed inset-y-0 left-0 w-72 bg-card border-r border-border shadow-xl animate-slide-in-left">
             <div className="h-16 flex items-center justify-between px-4 border-b border-border">
               <Link href="/" className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-amber-500 flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-accent to-amber-500 flex items-center justify-center">
                   <span className="text-white font-bold text-lg">M</span>
                 </div>
                 <span className="font-heading font-bold text-lg">ManageYourSaaS</span>

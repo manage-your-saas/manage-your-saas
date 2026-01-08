@@ -79,7 +79,7 @@ export function HeroSection() {
 
           {/* CTAs */}
           <div className="animate-on-scroll opacity-0 stagger-4 flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-            <Button size="lg" className="w-full sm:w-auto text-base font-medium group">
+            <Button onClick={()=>window.location.href='/login'} size="lg" className="w-full sm:w-auto text-base font-medium group">
               Get Started Free
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
             </Button>
@@ -109,7 +109,40 @@ export function HeroSection() {
 
         {/* Dashboard Preview */}
         <div className="animate-on-scroll opacity-0 stagger-6 mt-16 lg:mt-24">
-          <DashboardPreview />
+          {/* Mockup Images - Non-linear arrangement */}
+          <div className="relative mx-auto max-w-6xl">
+            {/* Hero 1 - Main Dashboard */}
+            <div className="relative z-20 transform rotate-1 hover:rotate-0 transition-transform duration-300">
+              <img 
+                src="/hero1.png" 
+                alt="Dashboard Overview" 
+                className="rounded-2xl shadow-2xl border border-border/50 w-full max-w-4xl mx-auto"
+              />
+            </div>
+            
+            {/* Hero 2 - Analytics Detail */}
+            <div className="absolute -top-8 -right-8 lg:-right-12 z-30 transform -rotate-3 hover:rotate-0 transition-transform duration-300">
+              <img 
+                src="/hero2.png" 
+                alt="Analytics Dashboard" 
+                className="rounded-xl shadow-xl border border-border/50 w-80 lg:w-[420px]"
+              />
+            </div>
+            
+            {/* Hero 3 - Settings/Integration */}
+            <div className="absolute -bottom-6 -left-6 lg:-left-10 z-30 transform rotate-2 hover:rotate-0 transition-transform duration-300">
+              <img 
+                src="/hero3.png" 
+                alt="Integration Settings" 
+                className="rounded-xl shadow-xl border border-border/50 w-72 lg:w-96"
+              />
+            </div>
+            
+            {/* Decorative elements */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-accent/10 rounded-full blur-3xl -z-10" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-2xl -z-10" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-xl -z-10" />
+          </div>
         </div>
       </div>
     </section>

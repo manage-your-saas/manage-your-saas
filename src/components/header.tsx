@@ -35,9 +35,7 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <div className="relative">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <Zap className="w-5 h-5 text-primary-foreground" />
-              </div>
+              <img src="/myslogo.svg" alt="ManageYourSaaS" className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />
             </div>
             <span className="font-semibold text-lg tracking-tight">ManageYourSaaS</span>
           </Link>
@@ -75,7 +73,7 @@ export function Header() {
             <Button onClick={()=>handleLogin()} variant="ghost" size="sm" className="font-medium">
               Log in
             </Button>
-            <Button size="sm" className="font-medium">
+            <Button onClick={()=>handleLogin()} size="sm" className="font-medium">
               Get Started Free
             </Button>
           </div>
@@ -123,10 +121,10 @@ export function Header() {
                 Testimonials
               </Link>
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
-                <Button onClick={()=> handleLogin} variant="outline" size="sm" className="w-full font-medium bg-transparent">
+                <Button onClick={()=>handleLogin()} variant="outline" size="sm" className="w-full font-medium bg-transparent">
                   Log in
                 </Button>
-                <Button size="sm" className="w-full font-medium">
+                <Button onClick={()=>handleLogin()} size="sm" className="w-full font-medium">
                   Get Started Free
                 </Button>
               </div>

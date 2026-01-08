@@ -2,16 +2,20 @@
 
 import { ArrowUpRight, TrendingUp, TrendingDown } from "lucide-react"
 
-const pages = [
-  { path: "/", title: "Homepage", views: "8,234", change: "+12.3%", trend: "up" },
-  { path: "/pricing", title: "Pricing", views: "4,521", change: "+8.7%", trend: "up" },
-  { path: "/features", title: "Features", views: "3,892", change: "+5.2%", trend: "up" },
-  { path: "/blog/seo-tips", title: "SEO Tips Guide", views: "2,847", change: "+22.1%", trend: "up" },
-  { path: "/contact", title: "Contact Us", views: "1,923", change: "-3.4%", trend: "down" },
-  { path: "/docs/getting-started", title: "Getting Started", views: "1,654", change: "+15.8%", trend: "up" },
-]
 
-export function TopPages() {
+interface TopPagesProps {
+  topPages: any[];
+}
+
+export function TopPages({ topPages }: TopPagesProps) {
+  if (!topPages || topPages.length === 0) {
+    return <div className="bg-card rounded-2xl border border-border p-6 h-full animate-pulse"></div>;
+  }
+
+  const pages = topPages.map(page => ({
+    path: page.dimension,
+    views: (page.screenPageViews || 0).toLocaleString(),
+  }));
   return (
     <div className="bg-card rounded-2xl border border-border p-6 animate-fade-up" style={{ animationDelay: "300ms" }}>
       <div className="flex items-center justify-between mb-6">
@@ -34,19 +38,10 @@ export function TopPages() {
               {index + 1}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium truncate">{page.title}</p>
-              <p className="text-xs text-muted-foreground truncate">{page.path}</p>
+              <p className="font-medium truncate">{page.path}</p>
             </div>
             <div className="text-right">
               <p className="font-semibold">{page.views}</p>
-              <div
-                className={`flex items-center justify-end gap-1 text-xs ${
-                  page.trend === "up" ? "text-emerald-600" : "text-red-500"
-                }`}
-              >
-                {page.trend === "up" ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {page.change}
-              </div>
             </div>
           </div>
         ))}

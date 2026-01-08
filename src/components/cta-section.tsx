@@ -47,7 +47,7 @@ export function CTASection() {
             required.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" variant="secondary" className="w-full sm:w-auto text-base font-medium group">
+            <Button onClick={()=>window.location.href='/login'} size="lg" variant="secondary" className="w-full sm:w-auto text-base font-medium group">
               Get Started Free
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
             </Button>

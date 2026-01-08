@@ -19,15 +19,15 @@ import {
 
 const mainNav = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, href: "/dashboard" },
-  { id: "search-console", label: "Search Console", icon: Search, href: "/dashboard/seo-test" },
-  { id: "analytics", label: "Google Analytics", icon: BarChart3, href: "/dashboard/analytics-test" },
-  { id: "stripe", label: "Stripe", icon: CreditCard, href: "/dashboard/stripe-test" },
+  { id: "search-console", label: "Search Console", icon: Search, href: "/dashboard/seo" },
+  { id: "analytics", label: "Google Analytics", icon: BarChart3, href: "/dashboard/analytics" },
+  { id: "stripe", label: "Stripe", icon: CreditCard, href: "/dashboard/stripe" },
 ]
 
 const socialNav = [
-  { id: "twitter", label: "X (Twitter)", icon: Globe, href: "/dashboard" },
-  { id: "linkedin", label: "LinkedIn", icon: Globe, href: "/dashboard" },
-  { id: "reddit", label: "Reddit", icon: MessageSquare, href: "/dashboard" },
+  { id: "twitter", label: "X (Twitter)", icon: Globe, href: "#", comingSoon: true },
+  { id: "linkedin", label: "LinkedIn", icon: Globe, href: "#", comingSoon: true },
+  { id: "reddit", label: "Reddit", icon: MessageSquare, href: "#", comingSoon: true },
 ]
 
 export function DashboardSidebar() {
@@ -45,11 +45,9 @@ export function DashboardSidebar() {
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-border">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-amber-500 flex items-center justify-center shadow-lg shadow-accent/20">
-              <span className="text-white font-bold text-lg">M</span>
-            </div>
-            {!collapsed && <span className="font-heading font-bold text-lg">ManageYourSaaS</span>}
+            <img src="/myslogo.svg" alt="ManageYourSaaS" className="w-10 h-10 rounded-xl shadow-lg shadow-accent/20" />
           </Link>
+          {!collapsed && <span className="font-heading font-bold text-lg">ManageYourSaaS</span>}
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="p-1.5 rounded-lg hover:bg-muted transition-colors"
@@ -112,16 +110,20 @@ export function DashboardSidebar() {
               {socialNav.map((item) => {
                 const Icon = item.icon
                 return (
-                  <Link
+                  <div
                     key={item.id}
-                    href={item.href}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 group"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground cursor-not-allowed opacity-60 group"
                   >
-                    <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center group-hover:bg-accent/10 transition-colors">
+                    <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center transition-colors">
                       <Icon className="w-5 h-5" />
                     </div>
-                    {!collapsed && <span className="font-medium">{item.label}</span>}
-                  </Link>
+                    {!collapsed && (
+                      <div className="flex-1 flex items-center justify-between">
+                        <span className="font-medium">{item.label}</span>
+                        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Coming Soon</span>
+                      </div>
+                    )}
+                  </div>
                 )
               })}
             </div>
@@ -129,7 +131,10 @@ export function DashboardSidebar() {
 
           {/* Add Integration */}
           {!collapsed && (
-            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border-2 border-dashed border-border hover:border-accent/50 hover:bg-accent/5 transition-all duration-200 text-muted-foreground hover:text-foreground">
+            <button 
+              onClick={() => window.location.href = "/dashboard"}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border-2 border-dashed border-border hover:border-accent/50 hover:bg-accent/5 transition-all duration-200 text-muted-foreground hover:text-foreground"
+            >
               <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
                 <Plus className="w-5 h-5" />
               </div>
