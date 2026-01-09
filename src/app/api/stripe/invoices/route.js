@@ -3,20 +3,12 @@ import { supabaseAdmin, STRIPE_ACCOUNTS_TABLE } from '@/lib/supabaseClient';
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-export async function GET(request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
-    }
-
-    // Get the Stripe account for the specific user
+    // Get the first available Stripe account
     const { data: account, error: accountError } = await supabaseAdmin
       .from(STRIPE_ACCOUNTS_TABLE)
       .select('stripe_account_id, access_token')
-      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
@@ -32,7 +24,7 @@ export async function GET(request) {
     const invoices = await stripe.invoices.list(
       { 
         limit: 100,
-        expand: ['data.customer', 'data.payment_intent', 'data.lines']
+        expand: ['data.customer', 'data.payment_intent']
       },
       {
         stripeAccount: account.stripe_account_id,
@@ -48,13 +40,12 @@ export async function GET(request) {
       amount_due: invoice.amount_due / 100,
       amount_paid: invoice.amount_paid / 100,
       status: invoice.status,
-      created: invoice.created,
+      created: new Date(invoice.created * 1000).toLocaleDateString(),
       due_date: invoice.due_date ? new Date(invoice.due_date * 1000).toLocaleDateString() : null,
       hosted_invoice_url: invoice.hosted_invoice_url,
       invoice_pdf: invoice.invoice_pdf,
       payment_intent_status: invoice.payment_intent?.status,
       currency: invoice.currency.toUpperCase(),
-      lines: invoice.lines,
     }));
 
     return NextResponse.json({ 

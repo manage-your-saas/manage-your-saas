@@ -2,13 +2,12 @@
 
 import { CheckCircle, XCircle, AlertCircle, Clock } from "lucide-react"
 
-interface Subscription {
-  status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'unpaid';
-}
-
-interface SubscriptionHealthProps {
-  subscriptions?: Subscription[];
-}
+const subscriptionStats = [
+  { label: "Active", count: 847, percentage: 89, icon: CheckCircle, color: "emerald" },
+  { label: "Trialing", count: 52, percentage: 5, icon: Clock, color: "blue" },
+  { label: "Past Due", count: 38, percentage: 4, icon: AlertCircle, color: "amber" },
+  { label: "Canceled", count: 19, percentage: 2, icon: XCircle, color: "red" },
+]
 
 const colorMap: Record<string, string> = {
   emerald: "bg-emerald-500",
@@ -24,30 +23,8 @@ const textColorMap: Record<string, string> = {
   red: "text-red-500",
 }
 
-export function SubscriptionHealth({ subscriptions = [] }: SubscriptionHealthProps) {
-
-  const statusCounts = {
-    active: 0,
-    trialing: 0,
-    past_due: 0,
-    canceled: 0,
-  };
-
-  subscriptions.forEach(sub => {
-    if (sub.status === 'active') statusCounts.active++;
-    else if (sub.status === 'trialing') statusCounts.trialing++;
-    else if (['past_due', 'unpaid', 'incomplete'].includes(sub.status)) statusCounts.past_due++;
-    else if (['canceled', 'incomplete_expired'].includes(sub.status)) statusCounts.canceled++;
-  });
-
-  const total = subscriptions.length;
-
-  const subscriptionStats = [
-    { label: "Active", count: statusCounts.active, percentage: total > 0 ? Math.round((statusCounts.active / total) * 100) : 0, icon: CheckCircle, color: "emerald" },
-    { label: "Trialing", count: statusCounts.trialing, percentage: total > 0 ? Math.round((statusCounts.trialing / total) * 100) : 0, icon: Clock, color: "blue" },
-    { label: "Past Due", count: statusCounts.past_due, percentage: total > 0 ? Math.round((statusCounts.past_due / total) * 100) : 0, icon: AlertCircle, color: "amber" },
-    { label: "Canceled", count: statusCounts.canceled, percentage: total > 0 ? Math.round((statusCounts.canceled / total) * 100) : 0, icon: XCircle, color: "red" },
-  ]
+export function SubscriptionHealth() {
+  const total = subscriptionStats.reduce((acc, stat) => acc + stat.count, 0)
 
   return (
     <div className="bg-card rounded-2xl border border-border p-6 animate-fade-up" style={{ animationDelay: "250ms" }}>
@@ -86,11 +63,11 @@ export function SubscriptionHealth({ subscriptions = [] }: SubscriptionHealthPro
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-sm font-semibold">{stat.count}</span>
-                <span className="text-xs text-muted-foreground w-12 text-right">{stat.percentage}%</span>
+                <span className="text-xs text-muted-foreground w-8 text-right">{stat.percentage}%</span>
               </div>
             </div>
           )
-        })} 
+        })}
       </div>
     </div>
   )
