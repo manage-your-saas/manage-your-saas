@@ -30,6 +30,7 @@ export default function AnalyticsPage() {
     topPages: [],
     geoData: [],
     realTimeUsers: 0,
+    deviceBreakdown: { desktop: 0, mobile: 0, tablet: 0 },
     loading: true,
     error: null,
     selectedRange: "28daysAgo"
@@ -103,7 +104,11 @@ export default function AnalyticsPage() {
           const res = await fetch(`/api/google/analytics/real-time?userId=${user.id}`);
           const data = await res.json();
           if (data.success) {
-            setAnalyticsData(prev => ({ ...prev, realTimeUsers: data.activeUsers }));
+            setAnalyticsData(prev => ({ 
+              ...prev, 
+              realTimeUsers: data.activeUsers,
+              deviceBreakdown: data.deviceBreakdown 
+            }));
           }
         }
       } catch (error) {
@@ -201,7 +206,7 @@ export default function AnalyticsPage() {
           ) : (
             <>
               {/* Real-time Users Bar */}
-              <RealTimeUsers realTimeUsers={analyticsData.realTimeUsers} />
+              <RealTimeUsers realTimeUsers={analyticsData.realTimeUsers} deviceBreakdown={analyticsData.deviceBreakdown} />
 
               {/* Metrics Grid */}
               <AnalyticsMetrics metrics={analyticsData.summary} />

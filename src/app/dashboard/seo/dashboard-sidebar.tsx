@@ -18,10 +18,10 @@ import {
 } from "lucide-react"
 
 const mainNav = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard, href: "/dashboard" },
-  { id: "search-console", label: "Search Console", icon: Search, href: "/dashboard/seo" },
-  { id: "analytics", label: "Google Analytics", icon: BarChart3, href: "/dashboard/analytics" },
-  { id: "stripe", label: "Stripe", icon: CreditCard, href: "/dashboard/stripe" },
+  { id: "overview", label: "Overview", icon: "/globe.svg", href: "/dashboard" },
+  { id: "search-console", label: "Search Console", icon: "/google-search-console-icon.svg", href: "/dashboard/seo" },
+  { id: "analytics", label: "Google Analytics", icon: "/google-analytics-icon.svg", href: "/dashboard/analytics" },
+  { id: "stripe", label: "Stripe", icon: "/stripe-icon.svg", href: "/dashboard/stripe" },
 ]
 
 const socialNav = [
@@ -44,10 +44,10 @@ export function DashboardSidebar() {
       >
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-border">
-          <Link href="/" className="flex items-center gap-3">
-            <img src="/myslogo.svg" alt="ManageYourSaaS" className="w-10 h-10 rounded-xl shadow-lg shadow-accent/20" />
-          </Link>
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/myslogo.svg" alt="ManageYourSaaS"  className="w-10 h-10"/>
           {!collapsed && <span className="font-heading font-bold text-lg">ManageYourSaaS</span>}
+          </Link>
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="p-1.5 rounded-lg hover:bg-muted transition-colors"
@@ -84,10 +84,10 @@ export function DashboardSidebar() {
                   >
                     <div
                       className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
-                        isActive ? "bg-accent text-white" : "bg-muted group-hover:bg-accent/10"
+                        isActive ? "bg-accent/10 text-white" : "bg-muted group-hover:bg-accent/10"
                       }`}
                     >
-                      <Icon className="w-5 h-5" />
+                      <img src={`${item.icon}`} className="w-5 h-5" />
                     </div>
                     {!collapsed && (
                       <>

@@ -16,18 +16,14 @@ export function DashboardHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-background/80 backdrop-blur-xl border-b border-border shadow-sm"
-          : "bg-background border-b border-border"
-      }`}
+      className={`sticky top-0 z-50 transition-all duration-300 bg-background/80 backdrop-blur-xl border-b border-border shadow-sm`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center group-hover:scale-105 transition-transform">
-              <span className="text-accent-foreground font-bold text-sm">M</span>
+              <img src="/myslogo.svg" alt="ManageYourSaaS" className="w-8 h-8 group-hover:scale-110 transition-transform" />
             </div>
             <span className="font-heading font-bold text-lg">ManageYourSaaS</span>
           </Link>

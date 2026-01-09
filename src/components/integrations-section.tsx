@@ -3,18 +3,14 @@
 import { useEffect, useRef } from "react"
 
 const integrations = [
-  { name: "Google Analytics", color: "bg-orange-500" },
-  { name: "Search Console", color: "bg-blue-500" },
-  { name: "Stripe", color: "bg-indigo-500" },
-  { name: "LinkedIn", color: "bg-blue-600" },
-  { name: "Reddit", color: "bg-orange-600" },
-  { name: "X (Twitter)", color: "bg-foreground" },
-  { name: "Slack", color: "bg-pink-500" },
-  { name: "Gmail", color: "bg-red-500" },
-  { name: "HubSpot", color: "bg-orange-500" },
-  { name: "Mailchimp", color: "bg-yellow-500" },
-  { name: "Intercom", color: "bg-blue-500" },
-  { name: "Zendesk", color: "bg-green-500" },
+  { name: "Google Analytics", color: "bg-orange-500" , logo:"/google-analytics-icon.svg"},
+  { name: "Search Console", color: "bg-blue-500" ,logo:"/google-search-console-icon.svg"},
+  { name: "Stripe", color: "bg-indigo-500" ,logo:"/stripe-icon.svg"},
+  { name: "LinkedIn", color: "bg-blue-600" ,logo:"/linkedin-icon.svg"},
+  { name: "Reddit", color: "bg-orange-600" ,logo:"/reddit-icon.svg"},
+  { name: "X (Twitter)", color: "bg-foreground" ,logo:"/twitter-icon.svg"},
+  { name: "Slack", color: "bg-pink-500" ,logo:"/slack-icon.svg"},
+  { name: "Gmail", color: "bg-red-500" ,logo:"/gmail-icon.svg"},
 ]
 
 export function IntegrationsSection() {
@@ -45,9 +41,9 @@ export function IntegrationsSection() {
                 className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border hover:border-accent/50 hover:shadow-md transition-all group cursor-pointer"
               >
                 <div
-                  className={`w-8 h-8 rounded-lg ${integration.color} flex items-center justify-center group-hover:scale-110 transition-transform`}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}
                 >
-                  <span className="text-xs font-bold text-white">{integration.name.charAt(0)}</span>
+                  <img src={`${integration.logo}`} className="w-8 h-8" alt="" />
                 </div>
                 <span className="text-sm font-medium truncate">{integration.name}</span>
               </div>

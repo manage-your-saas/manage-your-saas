@@ -26,8 +26,8 @@ export function Header() {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        isScrolled ? "bg-background/80 backdrop-blur-lg border-b border-border shadow-sm" : "bg-transparent",
+        "fixed top-0 bg-white left-0 right-0 z-50 transition-all duration-300",
+        isScrolled ? "bg-background/80 backdrop-blur-lg border-t border-border shadow-sm" : "bg-white ",
       )}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -69,8 +69,8 @@ export function Header() {
           </nav>
 
           {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-3">
-            <Button onClick={()=>handleLogin()} variant="ghost" size="sm" className="font-medium">
+          <div className="hidden md:flex items-center gap-3 ">
+            <Button onClick={()=>handleLogin()} variant="ghost" size="sm" className="font-medium border-2">
               Log in
             </Button>
             <Button onClick={()=>handleLogin()} size="sm" className="font-medium">
@@ -90,11 +90,11 @@ export function Header() {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border animate-fade-up">
+          <div className="md:hidden py-4 border-t  border-border animate-fade-up">
             <nav className="flex flex-col gap-4">
               <Link
                 href="#features"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className=" text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Features
