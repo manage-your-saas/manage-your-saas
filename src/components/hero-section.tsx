@@ -116,7 +116,7 @@ export function HeroSection() {
               <img 
                 src="/hero1.png" 
                 alt="Dashboard Overview" 
-                className="rounded-2xl shadow-2xl border border-border/50 w-full max-w-4xl mx-auto"
+                className="rounded-2xl shadow-2xl border border-border/50 w-full max-w-5xl mx-auto"
               />
             </div>
             
@@ -125,7 +125,7 @@ export function HeroSection() {
               <img 
                 src="/hero2.png" 
                 alt="Analytics Dashboard" 
-                className="rounded-xl shadow-xl border border-border/50 w-80 lg:w-[420px]"
+                className="rounded-xl shadow-xl border border-border/50 w-96 lg:w-[520px]"
               />
             </div>
             
@@ -134,7 +134,7 @@ export function HeroSection() {
               <img 
                 src="/hero3.png" 
                 alt="Integration Settings" 
-                className="rounded-xl shadow-xl border border-border/50 w-72 lg:w-96"
+                className="rounded-xl shadow-xl border border-border/50 w-80 lg:w-[440px]"
               />
             </div>
             
