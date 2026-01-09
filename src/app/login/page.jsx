@@ -31,7 +31,7 @@ export default function LoginPage() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'https://manageyoursaas-nu.vercel.app/dashboard'
+        redirectTo: 'http://localhost:3000/dashboard'
       }
     });
 
