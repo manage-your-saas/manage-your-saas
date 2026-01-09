@@ -2,13 +2,48 @@
 
 import { DollarSign, TrendingUp, TrendingDown, RefreshCw, Users } from "lucide-react"
 
-interface RevenueMetricsProps {
-  mrr?: number;
-  arr?: number;
-  growth?: number;
-  activeSubscriptions?: number;
-  arpu?: number;
-}
+const metrics = [
+  {
+    label: "Monthly Recurring Revenue",
+    shortLabel: "MRR",
+    value: "$12,847",
+    change: "+18.2%",
+    trend: "up",
+    icon: DollarSign,
+    color: "violet",
+    description: "vs last month",
+  },
+  {
+    label: "Annual Recurring Revenue",
+    shortLabel: "ARR",
+    value: "$154,164",
+    change: "+22.5%",
+    trend: "up",
+    icon: TrendingUp,
+    color: "emerald",
+    description: "projected",
+  },
+  {
+    label: "Active Subscriptions",
+    shortLabel: "Subs",
+    value: "847",
+    change: "+12.3%",
+    trend: "up",
+    icon: RefreshCw,
+    color: "blue",
+    description: "paying customers",
+  },
+  {
+    label: "Average Revenue Per User",
+    shortLabel: "ARPU",
+    value: "$15.17",
+    change: "+5.2%",
+    trend: "up",
+    icon: Users,
+    color: "amber",
+    description: "per month",
+  },
+]
 
 const colorMap: Record<string, { gradient: string; bg: string; shadow: string }> = {
   violet: {
@@ -33,51 +68,7 @@ const colorMap: Record<string, { gradient: string; bg: string; shadow: string }>
   },
 }
 
-export function RevenueMetrics({ mrr = 0, arr = 0, growth = 0, activeSubscriptions = 0, arpu = 0 }: RevenueMetricsProps) {
-  
-  const metrics = [
-    {
-      label: "Monthly Recurring Revenue",
-      shortLabel: "MRR",
-      value: `$${(mrr / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      change: `${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%`,
-      trend: growth >= 0 ? "up" : "down",
-      icon: DollarSign,
-      color: "violet",
-      description: "vs last month",
-    },
-    {
-      label: "Annual Recurring Revenue",
-      shortLabel: "ARR",
-      value: `$${(arr / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      change: `${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%`,
-      trend: growth >= 0 ? "up" : "down",
-      icon: TrendingUp,
-      color: "emerald",
-      description: "projected",
-    },
-    {
-      label: "Active Subscriptions",
-      shortLabel: "Subs",
-      value: activeSubscriptions.toLocaleString(),
-      change: "", // This needs to be calculated on the page level
-      trend: "up", // This needs to be calculated on the page level
-      icon: RefreshCw,
-      color: "blue",
-      description: "paying customers",
-    },
-    {
-      label: "Average Revenue Per User",
-      shortLabel: "ARPU",
-      value: `$${arpu.toFixed(2)}`,
-      change: "", // This needs to be calculated on the page level
-      trend: "up", // This needs to be calculated on the page level
-      icon: Users,
-      color: "amber",
-      description: "per month",
-    },
-  ]
-
+export function RevenueMetrics() {
   return (
     <div
       className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 animate-fade-up"
@@ -96,27 +87,25 @@ export function RevenueMetrics({ mrr = 0, arr = 0, growth = 0, activeSubscriptio
           >
             {/* Background gradient accent */}
             <div
-              className={`absolute top-0 right-0 w-32 h-32 bg-linear-to-br ${colors.gradient} opacity-5 blur-2xl group-hover:opacity-10 transition-opacity`}
+              className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colors.gradient} opacity-5 blur-2xl group-hover:opacity-10 transition-opacity`}
             />
 
             <div className="relative">
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div
-                  className={`w-12 h-12 rounded-xl bg-linear-to-br ${colors.gradient} flex items-center justify-center shadow-lg ${colors.shadow}`}
+                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center shadow-lg ${colors.shadow}`}
                 >
                   <Icon className="w-6 h-6 text-white" />
                 </div>
-                {metric.change && (
-                  <div
-                    className={`flex items-center gap-1 px-2 py-1 rounded-full ${
-                      isGood ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600"
-                    }`}
-                  >
-                    {isGood ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                    <span className="text-xs font-semibold">{metric.change}</span>
-                  </div>
-                )}
+                <div
+                  className={`flex items-center gap-1 px-2 py-1 rounded-full ${
+                    isGood ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600"
+                  }`}
+                >
+                  {isGood ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  <span className="text-xs font-semibold">{metric.change}</span>
+                </div>
               </div>
 
               {/* Value */}

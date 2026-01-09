@@ -2,19 +2,40 @@
 
 import { Users, UserPlus, UserMinus, Target, ArrowUpRight, TrendingUp, TrendingDown } from "lucide-react"
 
-interface Customer {
-  created: number;
-}
-
-interface Subscription {
-  status: string;
-  canceled_at?: number;
-}
-
-interface CustomerMetricsProps {
-  customers?: Customer[];
-  subscriptions?: Subscription[];
-}
+const customerStats = [
+  {
+    label: "Total Customers",
+    value: "1,247",
+    change: "+8.3%",
+    trend: "up",
+    icon: Users,
+    color: "violet",
+  },
+  {
+    label: "New This Month",
+    value: "124",
+    change: "+22.1%",
+    trend: "up",
+    icon: UserPlus,
+    color: "emerald",
+  },
+  {
+    label: "Churned",
+    value: "18",
+    change: "-12.5%",
+    trend: "down",
+    icon: UserMinus,
+    color: "red",
+  },
+  {
+    label: "Net New",
+    value: "+106",
+    change: "+31.2%",
+    trend: "up",
+    icon: Target,
+    color: "blue",
+  },
+]
 
 const colorMap: Record<string, { gradient: string; bg: string }> = {
   violet: { gradient: "from-violet-500 to-purple-500", bg: "bg-violet-500/10" },
@@ -23,51 +44,7 @@ const colorMap: Record<string, { gradient: string; bg: string }> = {
   blue: { gradient: "from-blue-500 to-cyan-500", bg: "bg-blue-500/10" },
 }
 
-export function CustomerMetrics({ customers = [], subscriptions = [] }: CustomerMetricsProps) {
-
-  const now = new Date();
-  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  const totalCustomers = customers.length;
-  const newThisMonth = customers.filter(c => new Date(c.created * 1000) >= firstDayOfMonth).length;
-  const churnedThisMonth = subscriptions.filter(s => s.status === 'canceled' && s.canceled_at && new Date(s.canceled_at * 1000) >= firstDayOfMonth).length;
-  const netNew = newThisMonth - churnedThisMonth;
-
-  const customerStats = [
-    {
-      label: "Total Customers",
-      value: totalCustomers.toLocaleString(),
-      change: "", // Change calculation requires historical data
-      trend: "up",
-      icon: Users,
-      color: "violet",
-    },
-    {
-      label: "New This Month",
-      value: newThisMonth.toLocaleString(),
-      change: "", // Change calculation requires historical data
-      trend: "up",
-      icon: UserPlus,
-      color: "emerald",
-    },
-    {
-      label: "Churned",
-      value: churnedThisMonth.toLocaleString(),
-      change: "", // Change calculation requires historical data
-      trend: "down",
-      icon: UserMinus,
-      color: "red",
-    },
-    {
-      label: "Net New",
-      value: `${netNew >= 0 ? '+' : ''}${netNew.toLocaleString()}`,
-      change: "", // Change calculation requires historical data
-      trend: netNew >= 0 ? "up" : "down",
-      icon: Target,
-      color: "blue",
-    },
-  ]
-
+export function CustomerMetrics() {
   return (
     <div className="bg-card rounded-2xl border border-border p-6 animate-fade-up" style={{ animationDelay: "300ms" }}>
       <div className="flex items-center justify-between mb-6">
@@ -90,22 +67,20 @@ export function CustomerMetrics({ customers = [], subscriptions = [] }: Customer
             <div key={stat.label} className="p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
               <div className="flex items-center gap-2 mb-3">
                 <div
-                  className={`w-8 h-8 rounded-lg bg-linear-to-br ${colors.gradient} flex items-center justify-center`}
+                  className={`w-8 h-8 rounded-lg bg-gradient-to-br ${colors.gradient} flex items-center justify-center`}
                 >
                   <Icon className="w-4 h-4 text-white" />
                 </div>
               </div>
               <p className="text-2xl font-heading font-bold">{stat.value}</p>
               <p className="text-xs text-muted-foreground mb-2">{stat.label}</p>
-              {stat.change && (
-                <div className={`flex items-center gap-1 text-xs ${isGood ? "text-emerald-600" : "text-red-500"}`}>
-                  {stat.trend === "up" ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {stat.change}
-                </div>
-              )}
+              <div className={`flex items-center gap-1 text-xs ${isGood ? "text-emerald-600" : "text-red-500"}`}>
+                {stat.trend === "up" ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {stat.change}
+              </div>
             </div>
           )
-        })} 
+        })}
       </div>
     </div>
   )

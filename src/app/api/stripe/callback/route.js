@@ -97,7 +97,7 @@ export async function GET(request) {
 
     // Upsert into user_integrations table
     const { error: integrationError } = await supabaseAdmin
-      .from('integration_status')
+      .from('user_integrations')
       .upsert(
         { user_id: userId, integration: 'stripe', status: 'connected', last_checked: new Date().toISOString() },
         { onConflict: 'user_id,integration' }
