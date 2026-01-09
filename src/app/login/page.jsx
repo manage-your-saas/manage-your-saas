@@ -134,7 +134,7 @@ export default function LoginPage() {
             onClick={handleGoogleLogin}
             disabled={isLoading}
             variant="outline"
-            className="w-full py-3 text-base font-medium bg-background hover:bg-muted/50 border-border"
+            className="w-full py-3 text-base font-medium hover:text-primary cursor-pointer bg-background hover:bg-muted/50 border-border"
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
               <path
