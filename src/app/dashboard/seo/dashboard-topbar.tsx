@@ -89,8 +89,8 @@ export function DashboardTopbar() {
           <div className="fixed inset-y-0 left-0 w-72 bg-card border-r border-border shadow-xl animate-slide-in-left">
             <div className="h-16 flex items-center justify-between px-4 border-b border-border">
               <Link href="/" className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-accent to-amber-500 flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">M</span>
+                <div className="w-10 h-10  from-accent  flex items-center justify-center">
+                  <img src="/myslogo.svg" alt="" />
                 </div>
                 <span className="font-heading font-bold text-lg">ManageYourSaaS</span>
               </Link>

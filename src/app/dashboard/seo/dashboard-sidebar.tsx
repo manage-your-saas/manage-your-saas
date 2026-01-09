@@ -44,10 +44,10 @@ export function DashboardSidebar() {
       >
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-border">
-          <Link href="/" className="flex items-center gap-3">
-            <img src="/myslogo.svg" alt="ManageYourSaaS" className="w-10 h-10 rounded-xl shadow-lg shadow-accent/20" />
-          </Link>
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/myslogo.svg" alt="ManageYourSaaS"  className="w-10 h-10"/>
           {!collapsed && <span className="font-heading font-bold text-lg">ManageYourSaaS</span>}
+          </Link>
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="p-1.5 rounded-lg hover:bg-muted transition-colors"

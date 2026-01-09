@@ -25,7 +25,7 @@ export default function StripeDashboardPage() {
                     <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
                     <span className="text-xs font-medium text-violet-600">Stripe Connected</span>
                   </div>
-                  <span className="text-xs text-muted-foreground">Test mode</span>
+                  <span className="text-xs bg-amber-300 border border-amber-500 p-2 rounded-xl text-muted-foreground">Test mode</span>
                 </div>
                 <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight">Revenue Dashboard</h1>
                 <p className="text-muted-foreground mt-1">Track MRR, ARR, and subscription metrics</p>
