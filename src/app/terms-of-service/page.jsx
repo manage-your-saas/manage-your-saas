@@ -1,10 +1,13 @@
+import { Header } from '@/components/header'
+
 export const metadata = {
   title: "Terms of Service",
 };
 
 export default function TermsOfService() {
   return (
-    <main style={{fontFamily: "var(--font-story-script)"}} className="mt-7 tracking-wider max-w-4xl mx-auto px-6 py-16 text-gray-800">
+    <main className="mt-7 tracking-wider max-w-4xl mx-auto px-6 py-16 text-gray-800">
+      <Header />
       <h1 className="text-4xl font-bold mb-6">Terms of Service</h1>
       <p className="mb-6 text-sm text-gray-500">
         Last updated: {new Date().toLocaleDateString()}
