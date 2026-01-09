@@ -41,7 +41,7 @@ export default function SignupPage() {
           last_name: lastName.trim(),
           display_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
         },
-        emailRedirectTo: 'https://manageyoursaas.com/dashboard'
+        emailRedirectTo: 'http://localhost:3000/dashboard'
       }
     });
 
@@ -56,7 +56,7 @@ export default function SignupPage() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'https://manageyoursaas.com/dashboard'
+        redirectTo: 'http://localhost:3000/dashboard'
       }
     });
 
