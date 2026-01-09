@@ -187,15 +187,7 @@ export default function AnalyticsPage() {
                       </svg>
                       Back to Overview
                     </button>
-                    <button 
-                      onClick={() => window.location.href = "/analytics"}
-                      className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002 2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002 2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2 2z" />
-                      </svg>
-                      Connect Google Analytics
-                    </button>
+                    
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Need help? Visit our <a href="/dashboard" className="text-blue-600 hover:underline">overview</a> to manage your integrations.
