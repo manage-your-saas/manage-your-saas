@@ -124,6 +124,7 @@ export async function GET(req) {
         },
       });
 
+      console.log('Time-series GA response:', JSON.stringify(res.data, null, 2));
       const rows = res.data.rows?.map(row => {
         const rowData = { dimension: row.dimensionValues[0].value };
         metrics.forEach((metric, index) => {
@@ -157,6 +158,9 @@ export async function GET(req) {
         runReport([{ startDate, endDate }]),
         runReport([{ startDate: previousStartDate, endDate: previousEndDate }]),
       ]);
+
+      console.log('Current Period GA response:', JSON.stringify(currentPeriodRes.data, null, 2));
+      console.log('Previous Period GA response:', JSON.stringify(previousPeriodRes.data, null, 2));
 
       const parseMetrics = (res) => {
         const row = res.data.rows?.[0];

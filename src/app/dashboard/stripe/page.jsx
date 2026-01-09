@@ -1,3 +1,7 @@
+'use client';
+
+import { useState } from 'react';
+import { AlertTriangle, X } from 'lucide-react';
 import { DashboardSidebar } from "../seo/dashboard-sidebar"
 import { DashboardTopbar } from "../seo/dashboard-topbar"
 import { RevenueMetrics } from "./revenue-metrics"
@@ -8,6 +12,7 @@ import { CustomerMetrics } from "./customer-metrics"
 import { ChurnAnalysis } from "./churn-analysis"
 
 export default function StripeDashboardPage() {
+  const [showWarning, setShowWarning] = useState(true);
   return (
     <div className="min-h-screen bg-background flex">
       <DashboardSidebar />
@@ -18,6 +23,23 @@ export default function StripeDashboardPage() {
         <main className="flex-1 p-4 md:p-6 lg:p-8 space-y-6">
           {/* Page Header */}
           <div className="animate-fade-up">
+            {showWarning && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-4 flex items-start justify-between animate-fade-up mb-6">
+                <div className="flex items-start">
+                  <AlertTriangle className="w-5 h-5 mr-3 mt-0.5 shrink-0" />
+                  <div>
+                    <h4 className="font-semibold">Important Notice for Users in India</h4>
+                    <p className="text-sm">
+                      Stripe services are currently unavailable in India, so live data cannot be accessed. This dashboard is for demonstration purposes only and is displaying sample data.
+                    </p>
+                  </div>
+                </div>
+                <button onClick={() => setShowWarning(false)} className="p-1 rounded-md hover:bg-amber-100 ml-4">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <div className="flex items-center gap-3 mb-2">

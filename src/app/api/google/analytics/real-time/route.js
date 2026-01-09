@@ -41,14 +41,36 @@ export async function GET(req) {
       auth: auth,
       requestBody: {
         metrics: [{ name: 'activeUsers' }],
+        dimensions: [{ name: 'deviceCategory' }],
       },
     });
 
-    const activeUsers = response.data?.rows?.[0]?.metricValues?.[0]?.value || '0';
+    let activeUsers = 0;
+    const deviceBreakdown = {
+      desktop: 0,
+      mobile: 0,
+      tablet: 0,
+    };
+
+    if (response.data && response.data.rows) {
+      response.data.rows.forEach(row => {
+        const device = row.dimensionValues[0].value.toLowerCase();
+        const users = parseInt(row.metricValues[0].value, 10);
+        if (Object.prototype.hasOwnProperty.call(deviceBreakdown, device)) {
+          deviceBreakdown[device] = users;
+        }
+        activeUsers += users;
+      });
+    }
+
+    
+    // console.log('GA RAW RESPONSE:', JSON.stringify(response.data, null, 2));
+
 
     return NextResponse.json({
       success: true,
-      activeUsers: parseInt(activeUsers, 10),
+      activeUsers,
+      deviceBreakdown,
     });
 
   } catch (err) {

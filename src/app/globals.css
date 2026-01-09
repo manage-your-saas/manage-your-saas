@@ -134,6 +134,11 @@
     font-weight: 600;
     letter-spacing: -0.02em;
   }
+
+  ::selection {
+    background-color: #eecba2; /* Lighter green */
+    color: black;
+  }
 }
 
 /* Custom animations */

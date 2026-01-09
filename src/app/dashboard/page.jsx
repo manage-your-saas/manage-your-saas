@@ -200,10 +200,8 @@ export default function DashboardPage() {
             {/* Search Console Card */}
             <div className="bg-card rounded-xl border border-border p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                  </svg>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+                  <img src="/google-search-console-icon.svg" className="w-10 h-10"  alt="Search-console-logo" />
                 </div>
                 {integrationStatus.google_search_console === 'connected' ? (
                   <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Connected</span>
@@ -233,10 +231,8 @@ export default function DashboardPage() {
             {/* Google Analytics Card */}
             <div className="bg-card rounded-xl border border-border p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+                  <img src="/google-analytics-icon.svg" className="w-10 h-10"  alt="Search-console-logo" />
                 </div>
                 {integrationStatus.google_analytics === 'connected' ? (
                   <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Connected</span>
@@ -266,10 +262,8 @@ export default function DashboardPage() {
             {/* Stripe Card */}
             <div className="bg-card rounded-xl border border-border p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-violet-100 rounded-lg flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+                  <img src="/stripe-4.svg" className="w-10 h-10"  alt="Search-console-logo" />
                 </div>
                 {integrationStatus.stripe === 'connected' ? (
                   <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Connected</span>

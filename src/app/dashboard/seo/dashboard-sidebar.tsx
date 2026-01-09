@@ -18,10 +18,10 @@ import {
 } from "lucide-react"
 
 const mainNav = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard, href: "/dashboard" },
-  { id: "search-console", label: "Search Console", icon: Search, href: "/dashboard/seo" },
-  { id: "analytics", label: "Google Analytics", icon: BarChart3, href: "/dashboard/analytics" },
-  { id: "stripe", label: "Stripe", icon: CreditCard, href: "/dashboard/stripe" },
+  { id: "overview", label: "Overview", icon: "/globe.svg", href: "/dashboard" },
+  { id: "search-console", label: "Search Console", icon: "/google-search-console-icon.svg", href: "/dashboard/seo" },
+  { id: "analytics", label: "Google Analytics", icon: "/google-analytics-icon.svg", href: "/dashboard/analytics" },
+  { id: "stripe", label: "Stripe", icon: "/stripe-icon.svg", href: "/dashboard/stripe" },
 ]
 
 const socialNav = [
@@ -84,10 +84,10 @@ export function DashboardSidebar() {
                   >
                     <div
                       className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
-                        isActive ? "bg-accent text-white" : "bg-muted group-hover:bg-accent/10"
+                        isActive ? "bg-accent/10 text-white" : "bg-muted group-hover:bg-accent/10"
                       }`}
                     >
-                      <Icon className="w-5 h-5" />
+                      <img src={`${item.icon}`} className="w-5 h-5" />
                     </div>
                     {!collapsed && (
                       <>
