@@ -102,8 +102,8 @@ export function Footer() {
         </div>
         
 
-        <div className="text-center flex flex-row items-center justify-center gap-9 mt-6">
-          <img src="/myslogo.svg" alt="ManageYourSaaS" className="w-40 h-40" />
+        <div className="text-center flex flex-row items-center justify-center gap-4 sm:gap-9 mt-6">
+          <img src="/myslogo.svg" alt="ManageYourSaaS" className="w-14 h-14 sm:w-40 sm:h-40" />
           <h1 className="font-heading text-gray-800 text-4xl sm:text-[150px] font-bold tracking-tight  ">
             ManageYourSaaS
           </h1>
