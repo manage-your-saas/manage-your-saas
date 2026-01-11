@@ -31,8 +31,12 @@ export function Footer() {
   return (
     <footer className="border-t border-border bg-muted/30">
       
+      
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        
+        
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
+          
           {/* Brand */}
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4">
@@ -64,10 +68,12 @@ export function Footer() {
               </ul>
             </div>
           ))}
+          
         </div>
 
+        
         {/* Bottom */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 mt-8 border-t border-border">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-8 mt-8 border-b border-border">
           <p className="text-sm text-muted-foreground">© 2026 ManageYourSaaS. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -93,6 +99,14 @@ export function Footer() {
               </svg>
             </Link>
           </div>
+        </div>
+        
+
+        <div className="text-center flex flex-row items-center justify-center gap-9 mt-6">
+          <img src="/myslogo.svg" alt="ManageYourSaaS" className="w-40 h-40" />
+          <h1 className="font-heading text-gray-800 text-4xl sm:text-[150px] font-bold tracking-tight  ">
+            ManageYourSaaS
+          </h1>
         </div>
       </div>
     </footer>
