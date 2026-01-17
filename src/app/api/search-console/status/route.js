@@ -9,6 +9,15 @@ export async function GET(req) {
     return NextResponse.json({ error: "Missing userId" }, { status: 400 });
   }
 
+  // Validate userId format (UUID)
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(userId)) {
+    return NextResponse.json(
+      { error: "Invalid userId format" },
+      { status: 400 }
+    );
+  }
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY

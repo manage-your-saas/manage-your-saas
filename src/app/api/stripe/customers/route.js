@@ -4,28 +4,39 @@ import { supabaseAdmin, STRIPE_ACCOUNTS_TABLE } from '@/lib/supabaseClient';
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-export async function GET() {
+export async function GET(req) {
   try {
-    // Get the first available Stripe account
-    const { data: account, error: accountError } = await supabaseAdmin
-      .from(STRIPE_ACCOUNTS_TABLE)
-      .select('stripe_account_id, access_token')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (accountError || !account) {
-      console.error('No Stripe account found:', accountError?.message || 'No accounts in database');
+    const userId = req.nextUrl.searchParams.get("userId");
+    
+    if (!userId) {
       return NextResponse.json(
-        { 
-          error: 'No Stripe account found',
-          details: accountError?.message || 'Please connect a Stripe account first'
-        },
-        { status: 404 }
+        { error: "Missing userId parameter" },
+        { status: 400 }
       );
     }
 
-    console.log('Fetching customers for account:', account.stripe_account_id);
+    // Validate userId format (UUID)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(userId)) {
+      return NextResponse.json(
+        { error: "Invalid userId format" },
+        { status: 400 }
+      );
+    }
+
+    // Get Stripe account for specific user
+    const { data: account, error: accountError } = await supabaseAdmin
+      .from(STRIPE_ACCOUNTS_TABLE)
+      .select('stripe_account_id, access_token')
+      .eq('user_id', userId)
+      .single();
+
+    if (accountError || !account) {
+      return NextResponse.json(
+        { error: 'Stripe account not connected' },
+        { status: 404 }
+      );
+    }
     
     // Fetch customers using the connected account's access token
     const customers = await stripe.customers.list(
@@ -35,8 +46,6 @@ export async function GET() {
         apiKey: account.access_token,
       }
     );
-
-    console.log(`Found ${customers.data?.length || 0} customers`);
     
     // Format customer data
     const formattedCustomers = customers.data.map(customer => ({
@@ -53,17 +62,9 @@ export async function GET() {
       count: formattedCustomers.length
     });
   } catch (error) {
-    console.error('Error fetching customers:', {
-      message: error.message,
-      stack: error.stack,
-      response: error.response?.data
-    });
+    console.error('Error fetching customers:', error);
     return NextResponse.json(
-      {
-        error: 'Failed to fetch customers',
-        details: error.message,
-        type: error.type
-      },
+      { error: 'Failed to fetch customers' },
       { status: 500 }
     );
   }

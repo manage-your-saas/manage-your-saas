@@ -28,7 +28,6 @@ export async function GET(request) {
       );
     }
 
-    console.log('🔑 Received authorization code');
 
     // Exchange the authorization code for an access token
     const response = await stripe.oauth.token({
@@ -43,32 +42,25 @@ export async function GET(request) {
     } = response;
 
     if (!access_token || !stripe_user_id || !refresh_token) {
-      console.error('❌ Missing required fields in OAuth response:', {
-        access_token: !!access_token,
-        stripe_user_id: !!stripe_user_id,
-        refresh_token: !!refresh_token
-      });
+      console.error('❌ Missing required fields in OAuth response');
       throw new Error('Failed to retrieve required tokens from Stripe');
     }
 
-    console.log('🔄 Attempting to save Stripe account to database...');
-    
     // First, check if account already exists
     const { data: existingAccount, error: fetchError } = await supabaseAdmin
-      .from(STRIPE_ACCOUNTS_TABLE)  // Fixed: Using the correct constant name
+      .from(STRIPE_ACCOUNTS_TABLE)
       .select('id')
       .eq('stripe_account_id', stripe_user_id)
       .single();
 
     let result;
     if (fetchError && !fetchError.details?.includes('0 rows')) {
-      console.error('❌ Error checking for existing account:', fetchError);
+      console.error('❌ Error checking for existing account');
       throw new Error('Failed to check for existing Stripe account');
     }
 
     if (existingAccount) {
       // Update existing account
-      console.log('🔄 Updating existing Stripe account');
       result = await supabaseAdmin
         .from(STRIPE_ACCOUNTS_TABLE)
         .update({
@@ -79,7 +71,6 @@ export async function GET(request) {
         .eq('stripe_account_id', stripe_user_id);
     } else {
       // Insert new account
-      console.log('➕ Creating new Stripe account');
       result = await supabaseAdmin
         .from(STRIPE_ACCOUNTS_TABLE)
         .insert([{
@@ -91,8 +82,8 @@ export async function GET(request) {
     }
 
     if (result.error) {
-      console.error('❌ Database error saving stripe_account:', result.error);
-      throw new Error(`Database error: ${result.error.message}`);
+      console.error('❌ Database error saving stripe_account');
+      throw new Error('Failed to save Stripe account');
     }
 
     // Upsert into user_integrations table
@@ -104,12 +95,9 @@ export async function GET(request) {
       );
 
     if (integrationError) {
-      console.error('❌ Database error saving user_integration:', integrationError);
-      throw new Error(`Database error: ${integrationError.message}`);
+      console.error('❌ Database error saving user_integration');
+      throw new Error('Failed to save integration status');
     }
-
-    
-    console.log('✅ Successfully saved Stripe account');
     return NextResponse.redirect(
       new URL('/dashboard/stripe?success=stripe_connected', request.url)
     );

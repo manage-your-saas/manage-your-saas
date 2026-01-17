@@ -4,14 +4,31 @@ import { supabaseAdmin, STRIPE_ACCOUNTS_TABLE } from '@/lib/supabaseClient';
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-export async function GET() {
+export async function GET(req) {
   try {
-    // Get the first available Stripe account
+    const userId = req.nextUrl.searchParams.get("userId");
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Missing userId parameter" },
+        { status: 400 }
+      );
+    }
+
+    // Validate userId format (UUID)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(userId)) {
+      return NextResponse.json(
+        { error: "Invalid userId format" },
+        { status: 400 }
+      );
+    }
+
+    // Get Stripe account for specific user
     const { data: account, error: accountError } = await supabaseAdmin
       .from(STRIPE_ACCOUNTS_TABLE)
       .select('stripe_account_id, access_token')
-      .order('created_at', { ascending: false })
-      .limit(1)
+      .eq('user_id', userId)
       .single();
 
     if (accountError || !account) {
@@ -87,7 +104,7 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching analytics:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch analytics', details: error.message },
+      { error: 'Failed to fetch analytics' },
       { status: 500 }
     );
   }

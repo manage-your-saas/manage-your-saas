@@ -59,8 +59,6 @@ export async function GET(req) {
         { status: 400 }
       );
     }
-    
-    console.log("TOKEN RESPONSE:", tokenData);
     // 🔑 Supabase service role (NO cookies)
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -88,8 +86,6 @@ export async function GET(req) {
 
     // ✅ Extract site URLs only
     const siteUrls = sitesData.siteEntry.map((site) => site.siteUrl);
-
-    console.log("SITE URLS:", siteUrls);
 
       await supabase
       .from("search_console_accounts")
