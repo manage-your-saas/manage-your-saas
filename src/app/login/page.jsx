@@ -28,10 +28,15 @@ export default function LoginPage() {
 
   async function handleGoogleLogin() {
     setIsLoading(true);
+    // Always use current origin - will be localhost:3000 locally, or production domain when deployed
+    const redirectUrl = typeof window !== 'undefined' 
+      ? `${window.location.origin}/dashboard` 
+      : 'http://localhost:3000/dashboard';
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'https://manageyoursaas-nu.vercel.app/dashboard'
+        redirectTo: redirectUrl
       }
     });
 

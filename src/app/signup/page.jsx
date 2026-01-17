@@ -32,6 +32,11 @@ export default function SignupPage() {
     }
     
     setIsLoading(true);
+    // Always use current origin - will be localhost:3000 locally, or production domain when deployed
+    const redirectUrl = typeof window !== 'undefined' 
+      ? `${window.location.origin}/dashboard` 
+      : 'http://localhost:3000/dashboard';
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -41,7 +46,7 @@ export default function SignupPage() {
           last_name: lastName.trim(),
           display_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
         },
-        emailRedirectTo: 'https://manageyoursaas.com/dashboard'
+        emailRedirectTo: redirectUrl
       }
     });
 
@@ -53,10 +58,15 @@ export default function SignupPage() {
 
   async function handleGoogleSignup() {
     setIsLoading(true);
+    // Always use current origin - will be localhost:3000 locally, or production domain when deployed
+    const redirectUrl = typeof window !== 'undefined' 
+      ? `${window.location.origin}/dashboard` 
+      : 'http://localhost:3000/dashboard';
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'https://manageyoursaas.com/dashboard'
+        redirectTo: redirectUrl
       }
     });
 
