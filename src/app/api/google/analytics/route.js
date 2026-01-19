@@ -71,21 +71,12 @@ export async function GET(req) {
     const range = req.nextUrl.searchParams.get("startDate") || "7daysAgo";
     const { startDate, endDate } = getDates(range);
 
-  if (!userId) {
-    return NextResponse.json(
-      { error: "Missing userId" },
-      { status: 400 }
-    );
-  }
-
-  // Validate userId format (UUID)
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(userId)) {
-    return NextResponse.json(
-      { error: "Invalid userId format" },
-      { status: 400 }
-    );
-  }
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Missing userId" },
+        { status: 400 }
+      );
+    }
 
     // 🔐 Get GA tokens + selected property
     const { data, error } = await supabase
@@ -133,6 +124,7 @@ export async function GET(req) {
         },
       });
 
+      console.log('Time-series GA response:', JSON.stringify(res.data, null, 2));
       const rows = res.data.rows?.map(row => {
         const rowData = { dimension: row.dimensionValues[0].value };
         metrics.forEach((metric, index) => {
@@ -167,6 +159,8 @@ export async function GET(req) {
         runReport([{ startDate: previousStartDate, endDate: previousEndDate }]),
       ]);
 
+      console.log('Current Period GA response:', JSON.stringify(currentPeriodRes.data, null, 2));
+      console.log('Previous Period GA response:', JSON.stringify(previousPeriodRes.data, null, 2));
 
       const parseMetrics = (res) => {
         const row = res.data.rows?.[0];
