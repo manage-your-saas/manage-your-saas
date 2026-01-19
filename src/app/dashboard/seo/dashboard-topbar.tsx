@@ -1,7 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { createClient, type User as SupabaseUser } from "@supabase/supabase-js"
 import {
   Menu,
   Bell,
@@ -13,12 +15,40 @@ import {
   LayoutDashboard,
   BarChart3,
   CreditCard,
-  Settings,
+  LogOut,
 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+)
 
 export function DashboardTopbar() {
+  const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [user, setUser] = useState<SupabaseUser | null>(null)
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    }
+    getUser()
+  }, [])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
 
   return (
     <>
@@ -69,13 +99,36 @@ export function DashboardTopbar() {
             
 
             {/* User Menu */}
-            <button className="flex items-center gap-2 p-1.5 pr-3 rounded-xl hover:bg-muted transition-colors">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent/20 to-amber-500/20 flex items-center justify-center">
-                <User className="w-4 h-4 text-accent" />
-              </div>
-              <span className="hidden sm:inline text-sm font-medium">Account</span>
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 p-1.5 pr-3 rounded-xl hover:bg-muted transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent/20 to-amber-500/20 flex items-center justify-center">
+                    <User className="w-4 h-4 text-accent" />
+                  </div>
+                  <span className="hidden sm:inline text-sm font-medium">
+                    {user?.user_metadata?.display_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Account'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {user?.user_metadata?.display_name || user?.user_metadata?.name || 'User'}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} variant="destructive" className="cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
@@ -120,13 +173,13 @@ export function DashboardTopbar() {
                 <CreditCard className="w-5 h-5" />
                 <span className="font-medium">Payments</span>
               </Link>
-              <Link
-                href="#"
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted"
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
               >
-                <Settings className="w-5 h-5" />
-                <span className="font-medium">Settings</span>
-              </Link>
+                <LogOut className="w-5 h-5" />
+                <span className="font-medium">Log out</span>
+              </button>
             </nav>
           </div>
         </div>
