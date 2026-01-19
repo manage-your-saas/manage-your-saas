@@ -15,7 +15,6 @@ import {
   LayoutDashboard,
   BarChart3,
   CreditCard,
-  Settings,
   LogOut,
 } from "lucide-react"
 import {
@@ -173,13 +172,6 @@ export function DashboardTopbar() {
               >
                 <CreditCard className="w-5 h-5" />
                 <span className="font-medium">Payments</span>
-              </Link>
-              <Link
-                href="/dashboard/settings"
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted"
-              >
-                <Settings className="w-5 h-5" />
-                <span className="font-medium">Settings</span>
               </Link>
               <button
                 onClick={handleLogout}
