@@ -1,4 +1,5 @@
 "use client"
+export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react"
 import { DollarSign, TrendingUp, TrendingDown, RefreshCw, Users, Loader2 } from "lucide-react"
@@ -14,7 +15,7 @@ type Metric = {
   description: string
 }
 
-export function RevenueMetrics({ userId }: { userId: string }) {
+export function RevenueMetrics({ userId }) {
   const [metrics, setMetrics] = useState<Metric[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -23,24 +24,16 @@ export function RevenueMetrics({ userId }: { userId: string }) {
 
     const fetchMetrics = async () => {
       try {
-        const response = await fetch(`/api/dodo-payments/revenue?userId=${userId}`)
+        const response = await fetch(`/api/dodo-payments/connect?userId=${userId}`)
         if (response.ok) {
           const data = await response.json()
-          const metrics = data.metrics
-          const prevMetrics = data.previousMetrics
-
-          const calculateChange = (current: number, previous: number) => {
-            if (previous === 0) return current > 0 ? "+100%" : "+0%"
-            const percentage = ((current - previous) / previous) * 100
-            return `${percentage > 0 ? '+' : ''}${percentage.toFixed(1)}%`
-          }
-
+          console.log('Dodo Payments data fetched:', data) // Debug log
           const newMetrics = [
             {
               label: "Total Revenue",
               shortLabel: "Revenue",
-              value: `$${metrics.totalRevenue.toLocaleString()}`,
-              change: calculateChange(metrics.totalRevenue, prevMetrics.totalRevenue),
+              value: `$${data.metrics.totalRevenue.toLocaleString()}`,
+              change: "",
               trend: "up" as const,
               icon: DollarSign,
               color: "emerald",
@@ -49,8 +42,8 @@ export function RevenueMetrics({ userId }: { userId: string }) {
             {
               label: "Net Revenue",
               shortLabel: "Net",
-              value: `$${metrics.netRevenue.toLocaleString()}`,
-              change: calculateChange(metrics.netRevenue, prevMetrics.netRevenue),
+              value: `$${data.metrics.netRevenue.toLocaleString()}`,
+              change: "",
               trend: "up" as const,
               icon: TrendingUp,
               color: "blue",
@@ -59,8 +52,8 @@ export function RevenueMetrics({ userId }: { userId: string }) {
             {
               label: "Total Subscriptions",
               shortLabel: "Subs",
-              value: metrics.totalSubscriptions.toLocaleString(),
-              change: calculateChange(metrics.totalSubscriptions, prevMetrics.totalSubscriptions),
+              value: data.metrics.totalSubscriptions.toLocaleString(),
+              change: "",
               trend: "up" as const,
               icon: RefreshCw,
               color: "violet",
@@ -69,14 +62,15 @@ export function RevenueMetrics({ userId }: { userId: string }) {
             {
               label: "Total Customers",
               shortLabel: "Customers",
-              value: metrics.totalCustomers.toLocaleString(),
-              change: calculateChange(metrics.totalCustomers, prevMetrics.totalCustomers),
+              value: data.metrics.totalCustomers.toLocaleString(),
+              change: "",
               trend: "up" as const,
               icon: Users,
               color: "amber",
               description: "All time",
             },
           ]
+          console.log('Setting metrics to:', newMetrics) // Debug log
           setMetrics(newMetrics)
         } else {
           console.error('Failed to fetch revenue metrics:', response.status)
@@ -148,7 +142,7 @@ export function RevenueMetrics({ userId }: { userId: string }) {
         metrics.map((metric, index) => {
           const Icon = metric.icon
           const colors = colorMap[metric.color]
-          const isGood = !metric.change.startsWith('-')
+          const isGood = metric.trend === "up"
 
           return (
             <div
@@ -169,17 +163,22 @@ export function RevenueMetrics({ userId }: { userId: string }) {
                   >
                     <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <div className={`flex items-center gap-1 text-sm font-semibold ${isGood ? "text-emerald-500" : "text-red-500"}`}>
-                    {isGood ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                    <span>{metric.change}</span>
+                  <div
+                    className={`flex items-center gap-1 px-2 py-1 rounded-full ${
+                      isGood ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600"
+                    }`}
+                  >
+                    {isGood ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    <span className="text-xs font-semibold">{metric.change}</span>
                   </div>
                 </div>
 
                 {/* Value */}
-                <div className="mt-4">
-                  <p className="text-3xl font-heading font-bold tracking-tight">{metric.value}</p>
-                  <p className="text-sm text-muted-foreground">{metric.label}</p>
+                <div className="mb-1">
+                  <p className="text-2xl font-heading font-bold tracking-tight">{metric.value}</p>
                 </div>
+                <p className="text-sm font-medium text-foreground">{metric.shortLabel}</p>
+                <p className="text-xs text-muted-foreground mt-1">{metric.description}</p>
               </div>
             </div>
           )
