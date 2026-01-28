@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertTriangle, X, ArrowUpRight } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
@@ -18,7 +18,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-export default function DodoPaymentsDashboardPage() {
+function DodoPaymentsDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState(null);
@@ -193,4 +193,18 @@ export default function DodoPaymentsDashboardPage() {
       </div>
     </div>
   )
+}
+
+export default function DodoPaymentsDashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        </div>
+      </div>
+    }>
+      <DodoPaymentsDashboardContent />
+    </Suspense>
+  );
 }

@@ -15,7 +15,7 @@ type Metric = {
   description: string
 }
 
-export function RevenueMetrics({ userId }) {
+export function RevenueMetrics({ userId }: { userId: string }) {
   const [metrics, setMetrics] = useState<Metric[]>([])
   const [loading, setLoading] = useState(true)
 
