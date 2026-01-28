@@ -47,7 +47,7 @@ export function RevenueChart() {
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="p-3 rounded-xl bg-violet-500/5 border border-violet-500/10">
           <p className="text-xs text-muted-foreground mb-1">Total MRR</p>
-          <p className="text-lg font-heading font-bold text-violet-600">$12,847</p>
+          <p className="text-lg font-heading font-bold text-violet-600">$12,84</p>
         </div>
         <div className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
           <p className="text-xs text-muted-foreground mb-1">New MRR</p>

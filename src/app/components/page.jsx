@@ -63,7 +63,7 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.
             </h1>
             
             <p className="text-1xl lg:text-2xl xl:text-3xl text-gray-700 max-w-3xl mx-auto mb-8">
-              Stop switching between  <span className="font-bold text-amber-800">Google Analytics</span>, <span className="font-bold text-yellow-600">Search Console</span>, and <span className="font-bold text-violet-700">Stripe</span> <span className="font-bold text-orange-600">Reddit</span>, <span className="font-bold text-blue-700">LinkedIn</span>, <span className="font-bold text-black">X</span>, just to understand your own business. <span className="font-bold"> <br /> Get everything you need — social reach, SEO, traffic, signups, and revenue — in one simple place.</span>
+              Stop switching between  <span className="font-bold text-amber-800">Google Analytics</span>, <span className="font-bold text-yellow-600">Search Console</span>, and <span className="font-bold text-lime-500">Dodo Payments</span> <span className="font-bold text-orange-600">Reddit</span>, <span className="font-bold text-blue-700">LinkedIn</span>, <span className="font-bold text-black">X</span>, just to understand your own business. <span className="font-bold"> <br /> Get everything you need — social reach, SEO, traffic, signups, and revenue — in one simple place.</span>
             </p>
             {/* CTA Buttons - Centered */}
             <div className="flex items-center justify-center gap-4 mb-3">

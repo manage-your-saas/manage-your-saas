@@ -6,7 +6,7 @@ const metrics = [
   {
     label: "Monthly Recurring Revenue",
     shortLabel: "MRR",
-    value: "$12,847",
+    value: "$12,84",
     change: "+18.2%",
     trend: "up",
     icon: DollarSign,
