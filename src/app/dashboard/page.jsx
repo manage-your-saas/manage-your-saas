@@ -263,7 +263,7 @@ export default function DashboardPage() {
             <div className="bg-card rounded-xl border border-border p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center">
-                  <img src="/dodo.svg" className="w-10 h-10"  alt="Dodo-Payments-logo" />
+                  <img src="/Dodo.svg" className="w-10 h-10"  alt="Dodo-Payments-logo" />
                 </div>
                 {integrationStatus.dodo_payments === 'connected' ? (
                   <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Connected</span>

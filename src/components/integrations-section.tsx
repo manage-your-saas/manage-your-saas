@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react"
 const integrations = [
   { name: "Google Analytics", color: "bg-orange-500" , logo:"/google-analytics-icon.svg"},
   { name: "Search Console", color: "bg-blue-500" ,logo:"/google-search-console-icon.svg"},
-  { name: "Dodo Payments", color: "bg-lime-500" ,logo:"/dodo.svg"},
+  { name: "Dodo Payments", color: "bg-lime-500" ,logo:"/Dodo.svg"},
   { name: "LinkedIn", color: "bg-blue-600" ,logo:"/linkedin-icon.svg"},
   { name: "Reddit", color: "bg-orange-600" ,logo:"/reddit-icon.svg"},
   { name: "X (Twitter)", color: "bg-foreground" ,logo:"/twitter-icon.svg"},
