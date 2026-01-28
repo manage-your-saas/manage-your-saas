@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 export const STRIPE_ACCOUNTS_TABLE = 'stripe_accounts';
+export const DODO_PAYMENTS_ACCOUNTS_TABLE = 'dodo_payments_accounts';
 
 // Regular client for client-side operations
 export const supabase = createClient(

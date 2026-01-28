@@ -27,7 +27,7 @@ export default function DashboardPage() {
   const [integrationStatus, setIntegrationStatus] = useState({
     google_search_console: null,
     google_analytics: null,
-    stripe: null,
+    dodo_payments: null,
   })
 
   // ✅ Load integration status
@@ -37,7 +37,7 @@ export default function DashboardPage() {
       const scRes = await fetch(
         `/api/search-console/status?userId=${user.id}`
       )
-      const scData = await scRes.json()
+      const scData = await scRes.json();
 
       if (scData?.siteUrl) {
         setIntegrationStatus(prev => ({
@@ -50,7 +50,7 @@ export default function DashboardPage() {
       const gaRes = await fetch(
         `/api/google/status?userId=${user.id}`
       )
-      const gaData = await gaRes.json()
+      const gaData = await gaRes.json();
 
       if (gaRes.ok && gaData?.connected) {
         setIntegrationStatus(prev => ({
@@ -59,16 +59,16 @@ export default function DashboardPage() {
         }))
       }
 
-      /* ---------------- Stripe ---------------- */
-      const stripeRes = await fetch(
-        `/api/stripe/status?userId=${user.id}`
+      /* ---------------- Dodo Payments ---------------- */
+      const dodoRes = await fetch(
+        `/api/dodo-payments/status?userId=${user.id}`
       )
-      const stripeData = await stripeRes.json()
+      const dodoData = await dodoRes.json()
 
-      if (stripeRes.ok && stripeData?.connected) {
+      if (dodoRes.ok && dodoData?.connected) {
         setIntegrationStatus(prev => ({
           ...prev,
-          stripe: 'connected'
+          dodo_payments: 'connected'
         }))
       }
 
@@ -101,9 +101,9 @@ export default function DashboardPage() {
     window.location.href = googleAnalyticsAuthUrl
   }
 
-  // Handle stripe connection
-  const connectStripe = () => {
-    window.location.href = stripeAuthUrl
+  // Handle Dodo Payments connection
+  const connectDodoPayments = () => {
+    router.push('/dashboard/dodo-payments/connect');
   }
 
   // ✅ Auth + load integrations
@@ -164,10 +164,10 @@ export default function DashboardPage() {
     `&include_granted_scopes=true` +
     `&state=${state}`
 
-  const stripeAuthUrl =
-    `https://connect.stripe.com/oauth/authorize` +
+  const dodoPaymentsAuthUrl =
+    `https://connect.dodopayments.com/oauth/authorize` +
     `?response_type=code` +
-    `&client_id=${process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID}` +
+    `&client_id=${process.env.NEXT_PUBLIC_DODO_PAYMENTS_CLIENT_ID}` +
     `&scope=read_write` +
     `&state=${state}`
 
@@ -259,31 +259,31 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Stripe Card */}
+            {/* Dodo Payments Card */}
             <div className="bg-card rounded-xl border border-border p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center">
-                  <img src="/stripe-4.svg" className="w-10 h-10"  alt="Search-console-logo" />
+                  <img src="/dodo.svg" className="w-10 h-10"  alt="Dodo-Payments-logo" />
                 </div>
-                {integrationStatus.stripe === 'connected' ? (
+                {integrationStatus.dodo_payments === 'connected' ? (
                   <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Connected</span>
                 ) : (
                   <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">Not Connected</span>
                 )}
               </div>
-              <h3 className="font-semibold mb-2">Stripe</h3>
+              <h3 className="font-semibold mb-2">Dodo Payments</h3>
               <p className="text-sm text-muted-foreground mb-4">Payment processing and subscription management</p>
-              {integrationStatus.stripe === 'connected' ? (
+              {integrationStatus.dodo_payments === 'connected' ? (
                 <button 
-                  onClick={() => router.push('/dashboard/stripe')}
-                  className="w-full bg-violet-600 hover:bg-violet-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                  onClick={() => router.push('/dashboard/dodo-payments')}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
                 >
                   View Dashboard
                 </button>
               ) : (
                 <button 
-                  onClick={connectStripe}
-                  className="w-full bg-violet-600 hover:bg-violet-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                  onClick={connectDodoPayments}
+                  className="w-full bg-lime-600 hover:bg-lime-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
                 >
                   Connect
                 </button>

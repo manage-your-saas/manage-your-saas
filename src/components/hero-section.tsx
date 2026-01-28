@@ -73,7 +73,7 @@ export function HeroSection() {
 
           {/* Subheadline */}
           <p className="animate-on-scroll opacity-0 stagger-3 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed text-balance">
-            Stop switching between Google Analytics, Search Console, Stripe, Reddit, LinkedIn, and X. Get everything you
+            Stop switching between Google Analytics, Search Console, Dodo Payments, Reddit, LinkedIn, and X. Get everything you
             need — social reach, SEO, traffic, signups, and revenue — in one simple place.
           </p>
 

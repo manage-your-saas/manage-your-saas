@@ -20,7 +20,7 @@ const mainNav = [
   { id: "overview", label: "Overview", icon: "/globe.svg", href: "/dashboard" },
   { id: "search-console", label: "Search Console", icon: "/google-search-console-icon.svg", href: "/dashboard/seo" },
   { id: "analytics", label: "Google Analytics", icon: "/google-analytics-icon.svg", href: "/dashboard/analytics" },
-  { id: "stripe", label: "Stripe", icon: "/stripe-icon.svg", href: "/dashboard/stripe" },
+  { id: "Dodo Payments", label: "Dodo Payments", icon: "/dodo.svg", href: "/dashboard/dodo-payments" },
 ]
 
 const socialNav = [
