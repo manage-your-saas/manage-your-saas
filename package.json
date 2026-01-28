@@ -15,6 +15,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.87.2",
+    "axios": "^1.6.0",
     "chart.js": "^4.5.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -30,7 +31,7 @@
     "react-icons": "^5.5.0",
     "recharts": "^3.6.0",
     "shadcn-ui": "^0.9.5",
-    "axios": "^1.6.0",
+    "stripe": "^20.2.0",
     "supabase": "^2.67.0",
     "tailwind-merge": "^3.4.0"
   },
