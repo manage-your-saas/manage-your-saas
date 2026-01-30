@@ -1,20 +1,22 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowUpRight, ArrowDownLeft, CreditCard, RefreshCw, Loader2 } from "lucide-react"
+import { ArrowUpRight, ArrowDownLeft, CreditCard, RefreshCw, Loader2, Repeat } from "lucide-react"
 
 type Transaction = {
   id: string
   customer: string
   email: string
   amount: string
-  type: "payment" | "refund" | "renewal"
+  originalAmount?: string
+  type: "payment" | "refund" | "subscription"
   plan: string
   date: string
-  status: "succeeded" | "refunded" | "pending"
+  status: "succeeded" | "refunded" | "pending" | "failed"
+  currency?: string
 }
 
-export function RecentTransactions({ userId }: { userId: string }) {
+export function RecentTransactions({ userId, dateFilter }: { userId: string; dateFilter: string }) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -22,8 +24,9 @@ export function RecentTransactions({ userId }: { userId: string }) {
     if (!userId) return;
 
     const fetchTransactions = async () => {
+      setLoading(true); // Show loader when date filter changes
       try {
-        const response = await fetch(`/api/dodo-payments/revenue?userId=${userId}`)
+        const response = await fetch(`/api/dodo-payments/revenue?userId=${userId}&dateFilter=${encodeURIComponent(dateFilter)}`)
         if (response.ok) {
           const data = await response.json()
           setTransactions(data.recentTransactions)
@@ -36,7 +39,7 @@ export function RecentTransactions({ userId }: { userId: string }) {
     }
 
     fetchTransactions()
-  }, [userId])
+  }, [userId, dateFilter])
 
   if (loading) {
     return (
@@ -64,12 +67,13 @@ export function RecentTransactions({ userId }: { userId: string }) {
     succeeded: "bg-emerald-500/10 text-emerald-600",
     refunded: "bg-red-500/10 text-red-500",
     pending: "bg-amber-500/10 text-amber-600",
+    failed: "bg-red-500/30 text-red-600"
   }
 
   const typeIcons: Record<string, typeof ArrowUpRight> = {
     payment: ArrowUpRight,
     refund: ArrowDownLeft,
-    renewal: RefreshCw,
+    subscription: Repeat,
   }
 
   return (
@@ -86,17 +90,21 @@ export function RecentTransactions({ userId }: { userId: string }) {
 
       <div className="space-y-3">
         {transactions.map((tx) => {
-          const TypeIcon = typeIcons[tx.type] || CreditCard
+          const TypeIcon = tx.status === "failed" ? ArrowDownLeft : typeIcons[tx.type] || CreditCard
           const isRefund = tx.type === "refund"
+          const isSubscription = tx.type === "subscription"
+          const isFailed = tx.status === "failed"
 
           return (
             <div key={tx.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted/50 transition-colors">
               <div
                 className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                  isRefund ? "bg-red-500/10" : "bg-emerald-500/10"
+                  isFailed ? "bg-red-500/10" : isRefund ? "bg-red-500/10" : isSubscription ? "bg-blue-500/10" : "bg-emerald-500/10"
                 }`}
               >
-                <TypeIcon className={`w-5 h-5 ${isRefund ? "text-red-500" : "text-emerald-600"}`} />
+                <TypeIcon className={`w-5 h-5 ${
+                  isFailed ? "text-red-500" : isRefund ? "text-red-500" : isSubscription ? "text-blue-600" : "text-emerald-600"
+                }`} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -106,7 +114,12 @@ export function RecentTransactions({ userId }: { userId: string }) {
                 <p className="text-xs text-muted-foreground truncate">{tx.plan}</p>
               </div>
               <div className="text-right">
-                <p className={`font-semibold ${isRefund ? "text-red-500" : "text-emerald-600"}`}>{tx.amount}</p>
+                <p className={`font-semibold ${
+                  isFailed ? "text-red-500" : isRefund ? "text-red-500" : isSubscription ? "text-blue-600" : "text-emerald-600"
+                }`}>{tx.amount}</p>
+                {tx.originalAmount && (
+                  <p className="text-xs text-muted-foreground">{tx.originalAmount}</p>
+                )}
                 <p className="text-xs text-muted-foreground">{tx.date}</p>
               </div>
             </div>

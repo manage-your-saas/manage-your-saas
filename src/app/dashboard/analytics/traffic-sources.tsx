@@ -4,18 +4,36 @@ import React from 'react';
 import { Globe, Search, Share2, Mail, MousePointerClick } from "lucide-react";
 
 interface TrafficSourcesProps {
-  trafficSources: any[];
+  trafficSources: any[];  
 }
 
-const sourceDetailsMap: { [key: string]: { icon: React.ElementType; color: string; name: string } } = {
-  '(direct)': { icon: Globe, color: 'emerald', name: 'Direct' },
-  'google': { icon: Search, color: 'blue', name: 'Google' },
-  'bing': { icon: Search, color: 'cyan', name: 'Bing' },
-  'facebook': { icon: Share2, color: 'violet', name: 'Facebook' },
-  't.co': { icon: Share2, color: 'blue', name: 'Twitter' },
-  'referral': { icon: MousePointerClick, color: 'amber', name: 'Referral' },
-  'email': { icon: Mail, color: 'rose', name: 'Email' },
-  '(other)': { icon: Share2, color: 'gray', name: 'Other' },
+const sourceDetailsMap: { [key: string]: { icon: React.ElementType; color: string; name: string; category: string } } = {
+  // Organic
+  'google': { icon: Search, color: 'emerald', name: 'Google', category: 'organic' },
+  'bing': { icon: Search, color: 'emerald', name: 'Bing', category: 'organic' },
+  'yahoo': { icon: Search, color: 'emerald', name: 'Yahoo', category: 'organic' },
+  'duckduckgo': { icon: Search, color: 'emerald', name: 'DuckDuckGo', category: 'organic' },
+  
+  // Direct
+  '(direct)': { icon: Globe, color: 'blue', name: 'Direct', category: 'direct' },
+  
+  // Social
+  'facebook': { icon: Share2, color: 'violet', name: 'Facebook', category: 'social' },
+  't.co': { icon: Share2, color: 'violet', name: 'Twitter', category: 'social' },
+  'instagram': { icon: Share2, color: 'violet', name: 'Instagram', category: 'social' },
+  'linkedin': { icon: Share2, color: 'violet', name: 'LinkedIn', category: 'social' },
+  'youtube': { icon: Share2, color: 'violet', name: 'YouTube', category: 'social' },
+  
+  // Paid
+  'cpc': { icon: MousePointerClick, color: 'amber', name: 'Paid Search', category: 'paid' },
+  'ppc': { icon: MousePointerClick, color: 'amber', name: 'Paid Ads', category: 'paid' },
+  'googleadwords': { icon: MousePointerClick, color: 'amber', name: 'Google Ads', category: 'paid' },
+  
+  // Referral
+  'referral': { icon: MousePointerClick, color: 'rose', name: 'Referral', category: 'referral' },
+  
+  // Other
+  '(other)': { icon: Share2, color: 'gray', name: 'Other', category: 'other' },
 };
 
 const colorMap: Record<string, string> = {
@@ -27,93 +45,85 @@ const colorMap: Record<string, string> = {
 }
 
 export function TrafficSources({ trafficSources }: TrafficSourcesProps) {
-  if (!trafficSources || trafficSources.length === 0) {
-    return <div className="bg-card rounded-2xl border border-border p-6 h-full animate-pulse"></div>;
-  }
-
-  const totalVisitors = trafficSources.reduce((acc, source) => acc + (source.sessions || 0), 0);
-
-  const sources = trafficSources.map(source => {
+  // Default to empty array if no data
+  const trafficData = trafficSources || [];
+  
+  // Group sources by category
+  const categoryMap = new Map<string, number>();
+  
+  trafficData.forEach(source => {
     const sourceName = source.dimension;
     const details = Object.entries(sourceDetailsMap).find(([key]) => sourceName.includes(key))?.[1] 
-                    || { icon: Globe, color: 'gray', name: sourceName };
-    const visitors = source.sessions || 0;
+                    || { category: 'other', name: sourceName };
+    const sessions = source.sessions || 0;
+    
+    const currentCategory = categoryMap.get(details.category) || 0;
+    categoryMap.set(details.category, currentCategory + sessions);
+  });
+
+  // Define main categories with their display info
+  const mainCategories = [
+    { key: 'organic', name: 'Organic', icon: Search, color: 'emerald' },
+    { key: 'direct', name: 'Direct', icon: Globe, color: 'blue' },
+    { key: 'social', name: 'Social', icon: Share2, color: 'violet' },
+    { key: 'paid', name: 'Paid', icon: MousePointerClick, color: 'amber' }
+  ];
+
+  const totalVisitors = Array.from(categoryMap.values()).reduce((acc, val) => acc + val, 0);
+
+  const sources = mainCategories.map(category => {
+    const visitors = categoryMap.get(category.key) || 0;
     const value = totalVisitors > 0 ? (visitors / totalVisitors) * 100 : 0;
 
     return {
-      name: details.name,
+      name: category.name,
       value: value,
       visitors: visitors.toLocaleString(),
-      icon: details.icon,
-      color: details.color,
+      icon: category.icon,
+      color: category.color,
     };
   }).sort((a, b) => b.value - a.value);
+
   return (
-    <div className="bg-card rounded-2xl border border-border p-6 animate-fade-up" style={{ animationDelay: "250ms" }}>
+    <div className="bg-card rounded-2xl border border-border p-6 animate-fade-up" style={{ animationDelay: "200ms" }}>
       <div className="mb-6">
         <h3 className="text-lg font-heading font-semibold">Traffic Sources</h3>
-        <p className="text-sm text-muted-foreground mt-1">Where your visitors come from</p>
+        <p className="text-sm text-muted-foreground mt-1">Where your users come from</p>
       </div>
 
-      {/* Donut Chart Visual */}
-      <div className="relative w-40 h-40 mx-auto mb-6">
-        <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-          {
-            sources.reduce(
-              (acc, source, index) => {
-                const circumference = 2 * Math.PI * 35
-                const strokeDasharray = (source.value / 100) * circumference
-                const strokeDashoffset = -acc.offset
-
-                acc.elements.push(
-                  <circle
-                    key={source.name}
-                    cx="50"
-                    cy="50"
-                    r="35"
-                    fill="none"
-                    strokeWidth="12"
-                    className={colorMap[source.color]}
-                    stroke="currentColor"
-                    strokeDasharray={`${strokeDasharray} ${circumference}`}
-                    strokeDashoffset={strokeDashoffset}
-                    strokeLinecap="round"
-                  />,
-                )
-                acc.offset += strokeDasharray
-
-                return acc
-              },
-              { elements: [] as React.ReactElement[], offset: 0 },
-            ).elements
-          }
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-heading font-bold">{totalVisitors.toLocaleString()}</span>
-          <span className="text-xs text-muted-foreground">Total</span>
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="space-y-3">
+      {/* Simple Bar Chart */}
+      <div className="space-y-3 mb-6">
         {sources.map((source) => {
-          const Icon = source.icon
+          const Icon = source.icon;
           return (
-            <div key={source.name} className="flex items-center justify-between group">
-              <div className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full ${colorMap[source.color]}`} />
+            <div key={source.name} className="space-y-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Icon className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm font-medium">{source.name}</span>
                 </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-muted-foreground">{source.visitors}</span>
+                  <span className="text-sm font-semibold w-10 text-right">{source.value.toFixed(1)}%</span>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground">{source.visitors}</span>
-                <span className="text-sm font-semibold w-10 text-right">{source.value.toFixed(1)}%</span>
+              <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className={`h-full ${colorMap[source.color]} transition-all duration-1000 ease-out`}
+                  style={{ width: `${source.value}%` }}
+                />
               </div>
             </div>
           )
         })}
+      </div>
+
+      {/* Summary */}
+      <div className="p-3 bg-muted/50 rounded-lg">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Total Sessions</span>
+          <span className="font-semibold">{totalVisitors.toLocaleString()}</span>
+        </div>
       </div>
     </div>
   )

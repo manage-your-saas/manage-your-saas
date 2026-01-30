@@ -1,0 +1,243 @@
+/* Theme transitions and base styles */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Apply CSS variables to common Tailwind classes */
+.theme-light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-muted: #f1f5f9;
+  --border: #e2e8f0;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #313131;
+  --accent: #10b981;
+  --accent-hover: #059669;
+}
+
+.theme-dark {
+ --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-card: #0a0a0a;
+  --bg-muted: #1a1a1a;
+  --border: #1a1a1a;
+  --text-primary: #ffffff;
+  --text-secondary: #e5e5e5;
+  --text-muted: #a3a3a3;
+  --accent: #10b981;
+  --accent-hover: #059669;
+}
+
+.theme-black {
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-card: #0a0a0a;
+  --bg-muted: #1a1a1a;
+  --border: #1a1a1a;
+  --text-primary: #ffffff;
+  --text-secondary: #e5e5e5;
+  --text-muted: #a3a3a3;
+  --accent: #10b981;
+  --accent-hover: #059669;
+}
+
+/* Apply theme to body and html */
+.theme-black body,
+.theme-black html {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.theme-dark body,
+.theme-dark html {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.theme-light body,
+.theme-light html {
+  background-color: #ffffff !important;
+}
+
+/* Override Tailwind classes to use CSS variables */
+.bg-background {
+  background-color: var(--bg-primary) !important;
+}
+
+.bg-card {
+  background-color: var(--bg-card) !important;
+}
+
+.bg-muted {
+  background-color: var(--bg-muted) !important;
+}
+
+.bg-muted\/30 {
+  background-color: color-mix(in srgb, var(--bg-muted) 30%, transparent) !important;
+}
+
+.bg-muted\/50 {
+  background-color: color-mix(in srgb, var(--bg-muted) 50%, transparent) !important;
+}
+
+.border-border {
+  border-color: var(--border) !important;
+}
+
+.text-foreground {
+  color: var(--text-primary) !important;
+}
+
+.text-muted-foreground {
+  color: var(--text-muted) !important;
+}
+
+/* Force all text colors to use theme variables */
+.theme-dark *,
+.theme-black * {
+  color: var(--text-primary) !important;
+}
+
+.theme-dark .text-emerald-600,
+.theme-black .text-emerald-600 {
+  color: var(--accent) !important;
+}
+
+.theme-dark .text-emerald-500,
+.theme-black .text-emerald-500 {
+  color: var(--accent) !important;
+}
+
+.theme-dark .text-red-500,
+.theme-black .text-red-500 {
+  color: #ef4444 !important;
+}
+
+.theme-dark .text-red-600,
+.theme-black .text-red-600 {
+  color: #ef4444 !important;
+}
+
+.theme-dark .text-blue-600,
+.theme-black .text-blue-600 {
+  color: #3b82f6 !important;
+}
+
+.theme-dark .text-muted-foreground,
+.theme-black .text-muted-foreground {
+  color: var(--text-muted) !important;
+}
+
+.theme-dark h1,
+.theme-black h1,
+.theme-dark h2,
+.theme-black h2,
+.theme-dark h3,
+.theme-black h3,
+.theme-dark h4,
+.theme-black h4,
+.theme-dark h5,
+.theme-black h5,
+.theme-dark h6,
+.theme-black h6,
+.theme-dark p,
+.theme-black p,
+.theme-dark span,
+.theme-black span {
+  color: var(--text-primary) !important;
+}
+
+/* Sidebar hover states for dark themes */
+.theme-dark .hover\:text-foreground:hover,
+.theme-black .hover\:text-foreground:hover {
+  color: var(--text-primary) !important;
+}
+
+.theme-dark .hover\:bg-muted:hover,
+.theme-black .hover\:bg-muted:hover {
+  background-color: var(--bg-muted) !important;
+}
+
+.theme-dark .group:hover .group-hover\:bg-accent\/10,
+.theme-black .group:hover .group-hover\:bg-accent\/10 {
+  background-color: color-mix(in srgb, var(--accent) 10%, transparent) !important;
+}
+
+.theme-dark .group:hover .group-hover\:text-accent,
+.theme-black .group:hover .group-hover\:text-accent {
+  color: var(--accent) !important;
+}
+
+.theme-dark .group:hover .text-muted-foreground,
+.theme-black .group:hover .text-muted-foreground {
+  color: var(--text-primary) !important;
+}
+
+.theme-dark .group:hover,
+.theme-black .group:hover {
+  color: var(--text-primary) !important;
+}
+
+/* Sidebar specific fixes */
+.theme-dark nav a,
+.theme-black nav a {
+  color: var(--text-muted) !important;
+}
+
+.theme-dark nav a:hover,
+.theme-black nav a:hover {
+  color: var(--text-primary) !important;
+  background-color: var(--bg-muted) !important;
+}
+
+.theme-dark nav a.active,
+.theme-black nav a.active {
+  color: var(--accent) !important;
+  background-color: color-mix(in srgb, var(--accent) 10%, transparent) !important;
+}
+
+/* Force black background for black theme */
+.theme-black .min-h-screen {
+  background-color: #000000 !important;
+}
+
+.theme-black .bg-background {
+  background-color: #000000 !important;
+}
+
+/* Chart specific styles */
+.recharts-wrapper {
+  background-color: transparent !important;
+}
+
+.recharts-tooltip-wrapper {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Custom scrollbar for dark themes */
+.theme-dark ::-webkit-scrollbar,
+.theme-black ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.theme-dark ::-webkit-scrollbar-track,
+.theme-black ::-webkit-scrollbar-track {
+  background: var(--bg-muted);
+}
+
+.theme-dark ::-webkit-scrollbar-thumb,
+.theme-black ::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.theme-dark ::-webkit-scrollbar-thumb:hover,
+.theme-black ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}

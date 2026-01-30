@@ -15,7 +15,7 @@ type Metric = {
   description: string
 }
 
-export function RevenueMetrics({ userId }: { userId: string }) {
+export function RevenueMetrics({ userId, dateFilter }: { userId: string; dateFilter: string }) {
   const [metrics, setMetrics] = useState<Metric[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -23,36 +23,37 @@ export function RevenueMetrics({ userId }: { userId: string }) {
     if (!userId) return;
 
     const fetchMetrics = async () => {
+      setLoading(true); // Show loader when date filter changes
       try {
-        const response = await fetch(`/api/dodo-payments/connect?userId=${userId}`)
+        const response = await fetch(`/api/dodo-payments/connect?userId=${userId}&dateFilter=${encodeURIComponent(dateFilter)}`)
         if (response.ok) {
           const data = await response.json()
           console.log('Dodo Payments data fetched:', data) // Debug log
           const newMetrics = [
             {
               label: "Total Revenue",
-              shortLabel: "Revenue",
-              value: `$${data.metrics.totalRevenue.toLocaleString()}`,
+              shortLabel: "Revenue (USD)",
+              value: `$${(data.metrics.totalRevenue || 0).toLocaleString()} USD`,
               change: "",
               trend: "up" as const,
               icon: DollarSign,
               color: "emerald",
-              description: "All time",
+              description: "All time (converted to USD)",
             },
             {
               label: "Net Revenue",
-              shortLabel: "Net",
-              value: `$${data.metrics.netRevenue.toLocaleString()}`,
+              shortLabel: "Net (USD)",
+              value: `$${(data.metrics.netRevenue || 0).toLocaleString()} USD`,
               change: "",
               trend: "up" as const,
               icon: TrendingUp,
               color: "blue",
-              description: "After refunds",
+              description: "After refunds (converted to USD)",
             },
             {
               label: "Total Subscriptions",
               shortLabel: "Subs",
-              value: data.metrics.totalSubscriptions.toLocaleString(),
+              value: (data.metrics.totalSubscriptions || 0).toLocaleString(),
               change: "",
               trend: "up" as const,
               icon: RefreshCw,
@@ -62,7 +63,7 @@ export function RevenueMetrics({ userId }: { userId: string }) {
             {
               label: "Total Customers",
               shortLabel: "Customers",
-              value: data.metrics.totalCustomers.toLocaleString(),
+              value: (data.metrics.totalCustomers || 0).toLocaleString(),
               change: "",
               trend: "up" as const,
               icon: Users,
@@ -83,7 +84,7 @@ export function RevenueMetrics({ userId }: { userId: string }) {
     }
 
     fetchMetrics()
-  }, [userId])
+  }, [userId, dateFilter])
 
   if (loading) {
     return (

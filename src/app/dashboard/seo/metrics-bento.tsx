@@ -130,7 +130,7 @@ export function MetricsBento({ metrics }: MetricsBentoProps) {
                   }`}
                 >
                   {displayPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                  {Math.abs(metric.change)}%
+                  {Math.abs(metric.change).toFixed(2)}%
                 </div>
               </div>
 
