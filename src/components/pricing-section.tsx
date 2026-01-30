@@ -10,12 +10,14 @@ const plans = [
     name: "Starter",
     description: "Perfect for indie hackers",
     price: { monthly: 19, yearly: 15 },
+    link : {monthly: "https://checkout.dodopayments.com/buy/pdt_0NWKGenIsSSyb9EadZqwm?quantity=1" , yearly: "https://checkout.dodopayments.com/buy/pdt_0NXPQhmABwsCKRvqikX2s?quantity=1"},
     features: ["5 integrations", "Real-time dashboard", "Basic analytics", "Email support", "7-day data history"],
   },
   {
     name: "Pro",
     description: "For growing SaaS businesses",
     price: { monthly: 49, yearly: 39 },
+    link: {monthly: "https://checkout.dodopayments.com/buy/pdt_0NWKGk6KpFloqADZW3wBj?quantity=1", yearly:"https://checkout.dodopayments.com/buy/pdt_0NXPQn8gyuFL3nEMwmRB6?quantity=1"},
     popular: true,
     features: [
       "Unlimited integrations",
@@ -129,14 +131,17 @@ export function PricingSection() {
                 {isYearly && <p className="text-xs text-muted-foreground mt-1">Billed annually</p>}
               </div>
 
-              <Button
+              <a
+                href={isYearly ? plan.link.yearly : plan.link.monthly}
+                target="_blank"
+                rel="noopener noreferrer"
                 className={cn(
-                  "w-full mb-6",
-                  plan.popular ? "" : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border-2",
+                  "w-full mb-6 inline-flex items-center pt-2 pb-2 justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+                  plan.popular ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border-2",
                 )}
               >
                 Get Started
-              </Button>
+              </a>
 
               <ul className="space-y-3">
                 {plan.features.map((feature) => (
