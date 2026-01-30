@@ -11,16 +11,17 @@ type SubscriptionStat = {
   color: string
 }
 
-export function SubscriptionHealth({ userId }: { userId: string }) {
+export function SubscriptionHealth({ userId, dateFilter }: { userId: string; dateFilter: string }) {
   const [subscriptionStats, setSubscriptionStats] = useState<SubscriptionStat[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    setLoading(true)
     if (!userId) return;
 
     const fetchSubscriptionHealth = async () => {
       try {
-        const response = await fetch(`/api/dodo-payments/revenue?userId=${userId}`)
+        const response = await fetch(`/api/dodo-payments/revenue?userId=${userId}&dateFilter=${encodeURIComponent(dateFilter)}`)
         if (response.ok) {
           const data = await response.json()
           const subscriptions = data.subscriptionHealth || []
@@ -29,16 +30,13 @@ export function SubscriptionHealth({ userId }: { userId: string }) {
           const stats = subscriptions.map((sub: any) => ({
             label: sub.status.charAt(0).toUpperCase() + sub.status.slice(1),
             count: sub.count,
-            percentage: Math.round((sub.count / total) * 100),
-            icon: sub.status === 'active' ? CheckCircle : 
-                  sub.status === 'trialing' ? Clock : 
-                  sub.status === 'past_due' ? AlertCircle : XCircle,
-            color: sub.status === 'active' ? 'emerald' : 
-                   sub.status === 'trialing' ? 'blue' : 
-                   sub.status === 'past_due' ? 'amber' : 'red'
+            percentage: total > 0 ? Math.round((sub.count / total) * 100) : 0,
+            icon: sub.status === 'active' ? CheckCircle : sub.status === 'canceled' ? XCircle : AlertCircle,
+            color: sub.status === 'active' ? 'text-emerald-600' : sub.status === 'canceled' ? 'text-red-600' : 'text-amber-600'
           }))
-          
           setSubscriptionStats(stats)
+        } else {
+          console.error('Failed to fetch subscription health:', response.status)
         }
       } catch (error) {
         console.error('Failed to fetch subscription health:', error)
@@ -48,7 +46,7 @@ export function SubscriptionHealth({ userId }: { userId: string }) {
     }
 
     fetchSubscriptionHealth()
-  }, [userId])
+  }, [userId, dateFilter])
 
   if (loading) {
     return (

@@ -12,6 +12,7 @@ import { SubscriptionHealth } from "./subscription-health"
 import { RecentTransactions } from "./recent-transactions"
 import { CustomerMetrics } from "./customer-metrics"
 import { Products } from "./products"
+import { useSidebarState } from "../../../hooks/use-sidebar-state"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -19,12 +20,14 @@ const supabase = createClient(
 );
 
 function DodoPaymentsDashboardContent() {
+  const sidebarCollapsed = useSidebarState();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [dateFilter, setDateFilter] = useState('This Month');
 
   // Check for success/error messages from URL params
   useEffect(() => {
@@ -81,7 +84,9 @@ function DodoPaymentsDashboardContent() {
     return (
       <div className="min-h-screen bg-background flex">
         <DashboardSidebar />
-        <div className="flex-1 flex flex-col lg:ml-72">
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${
+          sidebarCollapsed ? "lg:ml-20" : "lg:ml-72"
+        }`}>
           <DashboardTopbar />
           
           <main className="flex-1 p-4 md:p-6 lg:p-8">
@@ -122,10 +127,12 @@ function DodoPaymentsDashboardContent() {
     <div className="min-h-screen bg-background flex">
       <DashboardSidebar />
 
-      <div className="flex-1 flex flex-col lg:ml-72">
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${
+        sidebarCollapsed ? "lg:ml-20" : "lg:ml-72"
+      }`}>
         <DashboardTopbar />
 
-        <main className="flex-1 p-4 md:p-6 lg:p-8 space-y-6">
+          <main className="flex-1 p-4 md:p-6 lg:p-8 space-y-6">
           {/* Page Header */}
           <div className="animate-fade-up">
             {showWarning && (
@@ -158,10 +165,21 @@ function DodoPaymentsDashboardContent() {
                 <p className="text-muted-foreground mt-1">Track MRR, ARR, and subscription metrics</p>
               </div>
               <div className="flex items-center gap-2">
-                <select className="px-4 py-2 rounded-xl border border-border bg-card text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <select 
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className="px-4 py-2 rounded-xl border border-border bg-card text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                >
+                  <option>Today</option>
+                  <option>Yesterday</option>
+                  <option>This Week</option>
+                  <option>Last Week</option>
+                  <option>This Month</option>
+                  <option>Last Month</option>
+                  <option>This Year</option>
+                  <option>Last Year</option>
                   <option>Last 30 days</option>
                   <option>Last 90 days</option>
-                  <option>This year</option>
                   <option>All time</option>
                 </select>
               </div>
@@ -169,25 +187,21 @@ function DodoPaymentsDashboardContent() {
           </div>
 
           {/* Revenue Metrics */}
-          <RevenueMetrics userId={user?.id} />
+          <RevenueMetrics userId={user?.id} dateFilter={dateFilter} />
 
-          {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <RevenueChart userId={user?.id} />
-            </div>
-            <SubscriptionHealth userId={user?.id} />
-          </div>
+          {/* Chart - Full Width */}
+          <RevenueChart userId={user?.id} dateFilter={dateFilter} />
 
           {/* Customer Metrics */}
-          <CustomerMetrics userId={user?.id} />
+          <CustomerMetrics userId={user?.id} dateFilter={dateFilter} />
 
           {/* Products */}
-          <Products userId={user?.id} />
+          <Products userId={user?.id} dateFilter={dateFilter} />
 
-          {/* Bottom Row */}
+          {/* Bottom Row - Recent Transactions and Subscription Health */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <RecentTransactions userId={user?.id} />
+            <RecentTransactions userId={user?.id} dateFilter={dateFilter} />
+            <SubscriptionHealth userId={user?.id} dateFilter={dateFilter} />
           </div>
         </main>
       </div>

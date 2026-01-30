@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -32,6 +32,13 @@ const socialNav = [
 export function DashboardSidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
+
+  // Dispatch custom event to notify other components when state changes
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('sidebarStateChanged', { 
+      detail: { collapsed } 
+    }))
+  }, [collapsed])
 
   return (
     <>

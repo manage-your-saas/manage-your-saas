@@ -8,6 +8,7 @@ import { MetricsBento } from "./metrics-bento";
 import { PerformanceChart } from "./performance-chart";
 import { QueriesTable } from "./queries-table";
 import { QuickInsights } from "./quick-insights";
+import { useSidebarState } from "../../../hooks/use-sidebar-state";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL, 
@@ -21,6 +22,7 @@ const DATE_RANGES = [
 ];
 
 export default function DashboardPage() {
+  const sidebarCollapsed = useSidebarState();
   const [seoData, setSeoData] = useState({
     summary: null,
     queries: [],
@@ -178,7 +180,9 @@ export default function DashboardPage() {
       <DashboardSidebar />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:ml-72">
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${
+        sidebarCollapsed ? "lg:ml-20" : "lg:ml-72"
+      }`}>
         <DashboardTopbar />
 
         <main className="flex-1 p-4 md:p-6 lg:p-8 space-y-6">
@@ -217,13 +221,11 @@ export default function DashboardPage() {
           {/* Bento Grid Metrics */}
           <MetricsBento metrics={seoData.summary} />
 
-          {/* Charts & Insights Row */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <div className="xl:col-span-2">
-              <PerformanceChart data={seoData.chartData} selectedRange={seoData.selectedRange} />
-            </div>
-            <QuickInsights data={seoData.summary} />
-          </div>
+          {/* Charts - Full Width */}
+          <PerformanceChart data={seoData.chartData} selectedRange={seoData.selectedRange} />
+
+          {/* Quick Insights */}
+          <QuickInsights data={seoData.summary} />
 
           {/* Data Table */}
           <QueriesTable 

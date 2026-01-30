@@ -26,21 +26,7 @@ const plans = [
       "Custom reports",
       "Team collaboration",
     ],
-  },
-  {
-    name: "Enterprise",
-    description: "For larger teams",
-    price: { monthly: 99, yearly: 79 },
-    features: [
-      "Everything in Pro",
-      "Dedicated account manager",
-      "Custom integrations",
-      "SSO / SAML",
-      "Unlimited data history",
-      "SLA guarantee",
-      "On-premise option",
-    ],
-  },
+  }
 ]
 
 export function PricingSection() {
@@ -113,7 +99,7 @@ export function PricingSection() {
         </div>
 
         {/* Pricing cards */}
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto justify-center">
           {plans.map((plan) => (
             <div
               key={plan.name}
@@ -146,7 +132,7 @@ export function PricingSection() {
               <Button
                 className={cn(
                   "w-full mb-6",
-                  plan.popular ? "" : "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+                  plan.popular ? "" : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border-2",
                 )}
               >
                 Get Started

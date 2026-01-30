@@ -25,6 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { ThemeToggle } from "@/components/ThemeToggle"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -52,7 +53,7 @@ export function DashboardTopbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 h-16 bg-background/80 backdrop-blur-xl border-b border-border">
+      <header className="sticky top-0 z-30 h-16 bg-background backdrop-blur-xl border-b border-border">
         <div className="h-full px-4 md:px-6 flex items-center justify-between gap-4">
           {/* Mobile Menu Button */}
           <button
@@ -98,6 +99,9 @@ export function DashboardTopbar() {
             {/* Notifications */}
             
 
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -111,10 +115,10 @@ export function DashboardTopbar() {
                   <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 bg-card border-border">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
+                    <p className="text-sm font-medium leading-none text-foreground">
                       {user?.user_metadata?.display_name || user?.user_metadata?.name || 'User'}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
@@ -122,8 +126,8 @@ export function DashboardTopbar() {
                     </p>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} variant="destructive" className="cursor-pointer">
+                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuItem onClick={handleLogout} variant="destructive" className="cursor-pointer text-foreground hover:bg-destructive/10 hover:text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
@@ -175,7 +179,7 @@ export function DashboardTopbar() {
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:text-red-600 bg-red-500  hover:bg-red-500 dark:hover:bg-red-950/20"
               >
                 <LogOut className="w-5 h-5" />
                 <span className="font-medium">Log out</span>

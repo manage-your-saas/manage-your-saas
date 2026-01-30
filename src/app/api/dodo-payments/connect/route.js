@@ -2,6 +2,21 @@ import { NextResponse } from "next/server";
 import axios from "axios";
 import { getDodoApiKey } from "@/lib/dodoAuth";
 import { createClient } from "@supabase/supabase-js";
+import { getDateRange } from "@/lib/dateFilter";
+
+// Currency conversion rates (you can update these or use a real API)
+const CURRENCY_RATES = {
+  INR: 0.0115, // 1 INR = 0.0115 USD (approximate)
+  USD: 1.0,
+  EUR: 1.08,
+  GBP: 1.27,
+  // Add more currencies as needed
+};
+
+function convertToUSD(amount, currency) {
+  const rate = CURRENCY_RATES[currency] || 1.0;
+  return amount * rate;
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -54,12 +69,14 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
+    const dateFilter = searchParams.get("dateFilter") || "This Month";
 
     if (!userId) {
       return NextResponse.json({ error: "userId required" }, { status: 400 });
     }
 
     const apiKey = await getDodoApiKey(userId);
+    const dateRange = getDateRange(dateFilter);
 
     const headers = {
       Authorization: `Bearer ${apiKey}`,
@@ -90,24 +107,46 @@ export async function GET(req) {
     const payouts = payoutsRes.data.items || [];
     const customers = customersRes.data.items || [];
 
+    // Filter by date range
+    const filteredPayments = payments.filter(p => {
+      const paymentDate = new Date(p.created_at);
+      return paymentDate >= dateRange.start && paymentDate <= dateRange.end;
+    });
+
+    const filteredSubscriptions = subscriptions.filter(sub => {
+      const subDate = new Date(sub.created_at);
+      return subDate >= dateRange.start && subDate <= dateRange.end;
+    });
+
+    const filteredRefunds = refunds.filter(r => {
+      const refundDate = new Date(r.created_at);
+      return refundDate >= dateRange.start && refundDate <= dateRange.end;
+    });
+
     // Revenue calculation
     let totalRevenue = 0;
-    payments.forEach(p => {
-      if (p.status === "succeeded") totalRevenue += p.amount;
+    filteredPayments.forEach(p => {
+      if (p.status === "succeeded") {
+        // Convert amount to USD first
+        const usdAmount = convertToUSD(p.total_amount, p.currency);
+        totalRevenue += usdAmount;
+      }
     });
 
     // Refund calculation
     let totalRefunds = 0;
-    refunds.forEach(r => {
-      totalRefunds += r.amount;
+    filteredRefunds.forEach(r => {
+      // Convert refund amount to USD
+      const usdAmount = convertToUSD(r.total_amount, r.currency);
+      totalRefunds += usdAmount;
     });
 
     return NextResponse.json({
       success: true,
       metrics: {
-        totalRevenue,
-        totalRefunds,
-        netRevenue: totalRevenue - totalRefunds,
+        totalRevenue: totalRevenue / 100, // Convert cents to USD
+        totalRefunds: totalRefunds / 100, // Convert cents to USD
+        netRevenue: (totalRevenue - totalRefunds) / 100, // Convert cents to USD
         totalPayments: payments.length,
         totalProducts: products.length,
         totalSubscriptions: subscriptions.length,
@@ -115,10 +154,25 @@ export async function GET(req) {
         totalPayouts: payouts.length,
       },
       raw: {
-        payments,
+        payments: payments.map(p => ({
+          ...p,
+          usdAmount: p.total_amount ? (convertToUSD(p.total_amount, p.currency) / 100).toFixed(2) : '0.00',
+          originalAmount: p.total_amount ? (p.total_amount / 100).toFixed(2) : '0.00',
+          currency: p.currency || 'USD'
+        })),
         products,
-        subscriptions,
-        refunds,
+        subscriptions: subscriptions.map(s => ({
+          ...s,
+          usdPrice: s.recurring_pre_tax_amount ? (convertToUSD(s.recurring_pre_tax_amount, s.currency) / 100).toFixed(2) : '0.00',
+          originalPrice: s.recurring_pre_tax_amount ? (s.recurring_pre_tax_amount / 100).toFixed(2) : '0.00',
+          currency: s.currency || 'USD'
+        })),
+        refunds: refunds.map(r => ({
+          ...r,
+          usdAmount: r.total_amount ? (convertToUSD(r.total_amount, r.currency) / 100).toFixed(2) : '0.00',
+          originalAmount: r.total_amount ? (r.total_amount / 100).toFixed(2) : '0.00',
+          currency: r.currency || 'USD'
+        })),
         payouts,
         customers,
       }

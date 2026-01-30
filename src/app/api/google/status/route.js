@@ -16,15 +16,28 @@ export async function GET(req) {
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
 
-  const { data } = await supabase
-    .from("integration_status")
-    .select("status")
-    .eq("user_id", userId)
-    .eq("integration", "google_analytics")
-    .single();
+  try {
+    const { data } = await supabase
+      .from("analytics_accounts")
+      .select("google_refresh_token, google_property_id")
+      .eq("user_id", userId)
+      .single();
 
-  return NextResponse.json({
-    connected: data?.status === "connected",
-    status: data?.status ?? "disconnected",
-  });
+    const isConnected = !!(data?.google_refresh_token && data?.google_property_id);
+
+    return NextResponse.json({
+      connected: isConnected,
+      status: isConnected ? "connected" : "disconnected",
+      propertyId: data?.google_property_id || null,
+      propertyName: `GA Property ${data?.google_property_id}` || "Unknown Property",
+    });
+
+  } catch (error) {
+    console.error("Error fetching GA status:", error);
+    return NextResponse.json({
+      connected: false,
+      status: "error",
+      error: "Failed to fetch property details",
+    });
+  }
 }

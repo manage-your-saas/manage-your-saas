@@ -204,9 +204,9 @@ export default function DashboardPage() {
                   <img src="/google-search-console-icon.svg" className="w-10 h-10"  alt="Search-console-logo" />
                 </div>
                 {integrationStatus.google_search_console === 'connected' ? (
-                  <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Connected</span>
+ <span className="px-2 py-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">Connected</span>
                 ) : (
-                  <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">Not Connected</span>
+                  <span className="px-2 py-1 text-xs font-medium bg-muted/50 text-muted-foreground border border-border/50 rounded-full">Not Connected</span>
                 )}
               </div>
               <h3 className="font-semibold mb-2">Search Console</h3>
@@ -235,10 +235,9 @@ export default function DashboardPage() {
                   <img src="/google-analytics-icon.svg" className="w-10 h-10"  alt="Search-console-logo" />
                 </div>
                 {integrationStatus.google_analytics === 'connected' ? (
-                  <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Connected</span>
+                   <span className="px-2 py-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">Connected</span>
                 ) : (
-                  <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">Not Connected</span>
-                )}
+                  <span className="px-2 py-1 text-xs font-medium bg-muted/50 text-muted-foreground border border-border/50 rounded-full">Not Connected</span>)}
               </div>
               <h3 className="font-semibold mb-2">Google Analytics</h3>
               <p className="text-sm text-muted-foreground mb-4">Website traffic and user behavior analytics</p>
@@ -266,10 +265,9 @@ export default function DashboardPage() {
                   <img src="/Dodo.svg" className="w-10 h-10"  alt="Dodo-Payments-logo" />
                 </div>
                 {integrationStatus.dodo_payments === 'connected' ? (
-                  <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">Connected</span>
+                  <span className="px-2 py-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">Connected</span>
                 ) : (
-                  <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">Not Connected</span>
-                )}
+                  <span className="px-2 py-1 text-xs font-medium bg-muted/50 text-muted-foreground border border-border/50 rounded-full">Not Connected</span>)}
               </div>
               <h3 className="font-semibold mb-2">Dodo Payments</h3>
               <p className="text-sm text-muted-foreground mb-4">Payment processing and subscription management</p>

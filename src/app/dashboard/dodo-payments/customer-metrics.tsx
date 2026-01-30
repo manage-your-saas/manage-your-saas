@@ -12,16 +12,17 @@ type CustomerStat = {
   color: string
 }
 
-export function CustomerMetrics({ userId }: { userId: string }) {
+export function CustomerMetrics({ userId, dateFilter }: { userId: string; dateFilter: string }) {
   const [customerStats, setCustomerStats] = useState<CustomerStat[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    setLoading(true)
     if (!userId) return;
 
     const fetchCustomerMetrics = async () => {
       try {
-        const response = await fetch(`/api/dodo-payments/revenue?userId=${userId}`)
+        const response = await fetch(`/api/dodo-payments/revenue?userId=${userId}&dateFilter=${encodeURIComponent(dateFilter)}`)
         if (response.ok) {
           const data = await response.json()
           const metrics = data.metrics
@@ -36,38 +37,40 @@ export function CustomerMetrics({ userId }: { userId: string }) {
           const newStats = [
             {
               label: "Total Customers",
-              value: metrics.totalCustomers.toLocaleString(),
-              change: calculateChange(metrics.totalCustomers, prevMetrics.totalCustomers),
-              trend: "up" as const,
+              value: metrics.totalCustomers?.toString() || "0",
+              change: calculateChange(metrics.totalCustomers || 0, prevMetrics.totalCustomers || 0),
+              trend: ((metrics.totalCustomers || 0) >= (prevMetrics.totalCustomers || 0) ? "up" : "down") as "up" | "down",
               icon: Users,
-              color: "emerald",
+              color: "emerald"
             },
             {
               label: "New This Month",
-              value: metrics.newThisMonth.toLocaleString(),
-              change: calculateChange(metrics.newThisMonth, prevMetrics.newThisMonth),
-              trend: "up" as const,
+              value: metrics.newThisMonth?.toString() || "0",
+              change: calculateChange(metrics.newThisMonth || 0, prevMetrics.newThisMonth || 0),
+              trend: ((metrics.newThisMonth || 0) >= (prevMetrics.newThisMonth || 0) ? "up" : "down") as "up" | "down",
               icon: UserPlus,
-              color: "blue",
+              color: "blue"
             },
             {
               label: "Churned",
-              value: metrics.churned.toLocaleString(),
-              change: calculateChange(metrics.churned, prevMetrics.churned),
-              trend: "down" as const,
+              value: metrics.churned?.toString() || "0",
+              change: calculateChange(metrics.churned || 0, prevMetrics.churned || 0),
+              trend: ((metrics.churned || 0) <= (prevMetrics.churned || 0) ? "up" : "down") as "up" | "down",
               icon: UserMinus,
-              color: "red",
+              color: "red"
             },
             {
               label: "Net New",
-              value: `+${metrics.netNew.toLocaleString()}`,
-              change: calculateChange(metrics.netNew, prevMetrics.netNew),
-              trend: "up" as const,
+              value: `+${metrics.netNew?.toString() || "0"}`,
+              change: calculateChange(metrics.netNew || 0, prevMetrics.netNew || 0),
+              trend: ((metrics.netNew || 0) >= (prevMetrics.netNew || 0) ? "up" : "down") as "up" | "down",
               icon: Target,
-              color: "violet",
+              color: "violet"
             },
           ]
           setCustomerStats(newStats)
+        } else {
+          console.error('Failed to fetch customer metrics:', response.status)
         }
       } catch (error) {
         console.error('Failed to fetch customer metrics:', error)
@@ -77,7 +80,7 @@ export function CustomerMetrics({ userId }: { userId: string }) {
     }
 
     fetchCustomerMetrics()
-  }, [userId])
+  }, [userId, dateFilter])
 
   if (loading) {
     return (

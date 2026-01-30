@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { BarChart3, LineChart, Loader2 } from "lucide-react"
 
-export function RevenueChart({ userId }: { userId: string }) {
+export function RevenueChart({ userId, dateFilter }: { userId: string; dateFilter: string }) {
   const [chartType, setChartType] = useState<"area" | "bar">("area")
   const [data, setData] = useState([])
   const [metrics, setMetrics] = useState({
@@ -18,15 +18,16 @@ export function RevenueChart({ userId }: { userId: string }) {
     if (!userId) return;
 
     const fetchChartData = async () => {
+      setLoading(true); // Show loader when date filter changes
       try {
-        const response = await fetch(`/api/dodo-payments/revenue?userId=${userId}`)
+        const response = await fetch(`/api/dodo-payments/revenue?userId=${userId}&dateFilter=${encodeURIComponent(dateFilter)}`)
         if (response.ok) {
           const revenueData = await response.json()
           setData(revenueData.monthlyData)
           setMetrics({
-            totalMrr: revenueData.metrics.mrr,
-            newMrr: revenueData.metrics.newMrr,
-            churnedMrr: revenueData.metrics.churnedMrr
+            totalMrr: revenueData.metrics.mrr || 0,
+            newMrr: revenueData.metrics.newMrr || 0,
+            churnedMrr: revenueData.metrics.churnedMrr || 0
           })
         } else {
           console.error('Failed to fetch chart data:', response.status)
@@ -39,7 +40,7 @@ export function RevenueChart({ userId }: { userId: string }) {
     }
 
     fetchChartData()
-  }, [userId])
+  }, [userId, dateFilter])
 
   if (loading) {
     return (
@@ -80,17 +81,17 @@ export function RevenueChart({ userId }: { userId: string }) {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="p-4 rounded-xl bg-muted/40">
-          <p className="text-sm text-muted-foreground mb-1">Total MRR</p>
-          <p className="text-2xl font-heading font-bold text-emerald-500">${metrics.totalMrr.toLocaleString()}</p>
+        <div className="p-4 rounded-xl bg-muted">
+          <p className="text-sm text-muted-foreground mb-1">Total MRR (USD)</p>
+          <p className="text-2xl font-heading font-bold text-emerald-500">${(metrics.totalMrr || 0).toLocaleString()} USD</p>
         </div>
-        <div className="p-4 rounded-xl bg-muted/40">
-          <p className="text-sm text-muted-foreground mb-1">New MRR</p>
-          <p className="text-2xl font-heading font-bold text-blue-500">+${metrics.newMrr.toLocaleString()}</p>
+        <div className="p-4 rounded-xl bg-muted">
+          <p className="text-sm text-muted-foreground mb-1">New MRR (USD)</p>
+          <p className="text-2xl font-heading font-bold text-blue-500">+${(metrics.newMrr || 0).toLocaleString()} USD</p>
         </div>
-        <div className="p-4 rounded-xl bg-muted/40">
-          <p className="text-sm text-muted-foreground mb-1">Churned MRR</p>
-          <p className="text-2xl font-heading font-bold text-red-500">-${metrics.churnedMrr.toLocaleString()}</p>
+        <div className="p-4 rounded-xl bg-muted">
+          <p className="text-sm text-muted-foreground mb-1">Churned MRR (USD)</p>
+          <p className="text-2xl font-heading font-bold text-red-500">-${(metrics.churnedMrr || 0).toLocaleString()} USD</p>
         </div>
       </div>
 
@@ -109,64 +110,128 @@ export function RevenueChart({ userId }: { userId: string }) {
                     <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis
                   dataKey="month"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                  tick={{ fill: "var(--text-muted)", fontSize: 11 }}
                   dy={10}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                  interval={0}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                  tick={{ fill: "var(--text-muted)", fontSize: 12 }}
                   dx={-10}
-                  tickFormatter={(value) => `$${value / 1000}k`}
+                  tickFormatter={(value) => {
+                    if (value === 0) return '$0';
+                    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+                    if (value >= 1000) return `$${(value / 1000).toFixed(0)}k`;
+                    return `$${value}`;
+                  }}
                 />
                 <Tooltip
                   contentStyle={{ 
-                    background: 'hsl(var(--card))', 
-                    border: '1px solid hsl(var(--border))',
+                    background: 'var(--bg-card)', 
+                    border: '1px solid var(--border)',
                     borderRadius: '0.75rem',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                    boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+                    padding: '12px 16px'
                   }}
-                  itemStyle={{ color: 'hsl(var(--foreground))' }}
-                  labelStyle={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.875rem' }}
-                  formatter={(value) => typeof value === 'number' ? [`$${value.toLocaleString()}`, 'MRR'] : [0, 'MRR']}
+                  itemStyle={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '14px' }}
+                  labelStyle={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}
+                  formatter={(value) => typeof value === 'number' ? [`$${value.toLocaleString()} USD`, '📈 MRR'] : ['$0 USD', '📈 MRR']}
+                  labelFormatter={(label: string) => `📅 ${label}`}
                 />
                 <Area type="monotone" dataKey="mrr" stroke="#10B981" strokeWidth={2} fill="url(#mrrGradient)" />
               </AreaChart>
             ) : (
-              <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <BarChart data={data} margin={{ top: 20, right: 10, left: -10, bottom: 0 }} barGap={4} barCategoryGap="10%">
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis
                   dataKey="month"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                  tick={{ fill: "var(--text-muted)", fontSize: 11 }}
                   dy={10}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                  interval={0}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                  tick={{ fill: "var(--text-muted)", fontSize: 12 }}
                   dx={-10}
-                  tickFormatter={(value) => `$${value / 1000}k`}
+                  tickFormatter={(value) => {
+                    if (value === 0) return '$0';
+                    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+                    if (value >= 1000) return `$${(value / 1000).toFixed(0)}k`;
+                    return `$${value}`;
+                  }}
                 />
                 <Tooltip
                   contentStyle={{ 
-                    background: 'hsl(var(--card))', 
-                    border: '1px solid hsl(var(--border))',
+                    background: 'var(--bg-card)', 
+                    border: '1px solid var(--border)',
                     borderRadius: '0.75rem',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                    boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+                    padding: '12px 16px'
                   }}
-                  itemStyle={{ color: 'hsl(var(--foreground))' }}
-                  labelStyle={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.875rem' }}
-                  formatter={(value) => typeof value === 'number' ? `$${value.toLocaleString()}` : '$0'}
+                  itemStyle={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '14px' }}
+                  labelStyle={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}
+                  formatter={(value: any, name?: string) => {
+                    if (typeof value === 'number') {
+                      const formattedValue = value.toLocaleString();
+                      if (name === 'New MRR') {
+                        return [`$${formattedValue} USD`, '📈 New MRR'];
+                      } else if (name === 'Churned MRR') {
+                        return [`$${formattedValue} USD`, '📉 Churned MRR'];
+                      }
+                      return [`$${formattedValue} USD`, name || ''];
+                    }
+                    return ['$0 USD', name || ''];
+                  }}
+                  labelFormatter={(label: string) => `📅 ${label}`}
                 />
-                <Bar dataKey="newMrr" name="New MRR" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="churnMrr" name="Churned" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                <Legend 
+                  wrapperStyle={{ paddingTop: '20px' }}
+                  iconType="rect"
+                  formatter={(value: string) => <span style={{ color: 'hsl(var(--foreground))', fontSize: '12px' }}>{value}</span>}
+                />
+                <Bar 
+                  dataKey="newMrr" 
+                  name="New MRR" 
+                  fill="url(#newMrrGradient)" 
+                  radius={[6, 6, 0, 0]}
+                  animationDuration={800}
+                  animationBegin={100}
+                  maxBarSize={60}
+                />
+                <Bar 
+                  dataKey="churnMrr" 
+                  name="Churned MRR" 
+                  fill="url(#churnMrrGradient)" 
+                  radius={[6, 6, 0, 0]}
+                  animationDuration={800}
+                  animationBegin={200}
+                  maxBarSize={60}
+                />
+                <defs>
+                  <linearGradient id="newMrrGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.9} />
+                    <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.6} />
+                  </linearGradient>
+                  <linearGradient id="churnMrrGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#EF4444" stopOpacity={0.9} />
+                    <stop offset="100%" stopColor="#EF4444" stopOpacity={0.6} />
+                  </linearGradient>
+                </defs>
               </BarChart>
             )}
           </ResponsiveContainer>

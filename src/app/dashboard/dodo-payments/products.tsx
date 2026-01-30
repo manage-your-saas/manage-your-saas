@@ -4,10 +4,12 @@ import { useState, useEffect } from "react"
 import { Package, DollarSign, Users, TrendingUp, Loader2 } from "lucide-react"
 
 type Product = {
-  id: string
+  product_id?: string
+  id?: string
   name: string
   description?: string
-  price: number
+  price?: number
+  recurring_pre_tax_amount?: number
   currency: string
   interval?: string
   active_subscriptions?: number
@@ -15,7 +17,7 @@ type Product = {
   created_at?: string
 }
 
-export function Products({ userId }: { userId: string }) {
+export function Products({ userId, dateFilter }: { userId: string; dateFilter: string }) {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -23,8 +25,9 @@ export function Products({ userId }: { userId: string }) {
     if (!userId) return;
 
     const fetchProducts = async () => {
+      setLoading(true); // Show loader when date filter changes
       try {
-        const response = await fetch(`/api/dodo-payments/revenue?userId=${userId}`)
+        const response = await fetch(`/api/dodo-payments/revenue?userId=${userId}&dateFilter=${encodeURIComponent(dateFilter)}`)
         if (response.ok) {
           const data = await response.json()
           
@@ -46,7 +49,7 @@ export function Products({ userId }: { userId: string }) {
     }
 
     fetchProducts()
-  }, [userId])
+  }, [userId, dateFilter])
 
   if (loading) {
     return (
@@ -92,8 +95,8 @@ export function Products({ userId }: { userId: string }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {products.map((product) => (
-            <div key={product.id} className="bg-card border border-border rounded-2xl p-5 flex flex-col justify-between hover:shadow-lg hover:shadow-black/5 transition-shadow">
+          {products.map((product, index) => (
+            <div key={product.product_id || product.id || `product-${index}`} className="bg-card border border-border rounded-2xl p-5 flex flex-col justify-between hover:shadow-lg hover:shadow-black/5 transition-shadow">
               <div>
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-12 h-12 rounded-xl bg-linear-to-br from-emerald-500/10 to-teal-500/10 flex items-center justify-center">
@@ -118,7 +121,7 @@ export function Products({ userId }: { userId: string }) {
                 <div className="flex items-baseline justify-between">
                   <span className="text-sm text-muted-foreground">Price</span>
                   <span className="font-bold text-2xl font-heading">
-                    ${(product.price / 100).toFixed(2)}
+                    ${((product.price || product.recurring_pre_tax_amount || 0) / 100).toFixed(2)}
                     {product.interval && <span className="text-sm font-normal text-muted-foreground">/{product.interval}</span>}
                   </span>
                 </div>
