@@ -4,6 +4,7 @@ import React from "react";
 import "./globals.css";
 import "./fonts.css";
 import Navbar from "./components/Navbar";
+import { IntentTracker } from "../components/IntentTracker";
 import { Space_Grotesk, DM_Sans } from "next/font/google"
 
 const _spaceGrotesk = Space_Grotesk({
@@ -48,6 +49,7 @@ export default function RootLayout({
       >
         {/* <Navbar /> */}
         {children}
+        <IntentTracker />
       </body>
     </html>
   );

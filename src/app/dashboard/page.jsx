@@ -6,6 +6,7 @@ import { MetricsBento } from "./seo/metrics-bento"
 import { PerformanceChart } from "./seo/performance-chart"
 import { QueriesTable } from "./seo/queries-table"
 import { QuickInsights } from "./seo/quick-insights"
+import { LiveUserIntent } from "../../components/LiveUserIntent"
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from "next/link"
@@ -201,10 +202,10 @@ export default function DashboardPage() {
             <div className="bg-card rounded-xl border border-border p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center">
-                  <img src="/google-search-console-icon.svg" className="w-10 h-10"  alt="Search-console-logo" />
+                  <img src="/google-search-console-icon.svg" className="w-10 h-10" alt="Search-console-logo" />
                 </div>
                 {integrationStatus.google_search_console === 'connected' ? (
- <span className="px-2 py-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">Connected</span>
+                  <span className="px-2 py-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">Connected</span>
                 ) : (
                   <span className="px-2 py-1 text-xs font-medium bg-muted/50 text-muted-foreground border border-border/50 rounded-full">Not Connected</span>
                 )}
@@ -212,14 +213,14 @@ export default function DashboardPage() {
               <h3 className="font-semibold mb-2">Search Console</h3>
               <p className="text-sm text-muted-foreground mb-4">Google Search Console integration for SEO performance</p>
               {integrationStatus.google_search_console === 'connected' ? (
-                <button 
+                <button
                   onClick={() => router.push('/dashboard/seo')}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
                 >
                   View Dashboard
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={connectSearchConsole}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
                 >
@@ -232,24 +233,24 @@ export default function DashboardPage() {
             <div className="bg-card rounded-xl border border-border p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center">
-                  <img src="/google-analytics-icon.svg" className="w-10 h-10"  alt="Search-console-logo" />
+                  <img src="/google-analytics-icon.svg" className="w-10 h-10" alt="Search-console-logo" />
                 </div>
                 {integrationStatus.google_analytics === 'connected' ? (
-                   <span className="px-2 py-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">Connected</span>
+                  <span className="px-2 py-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">Connected</span>
                 ) : (
                   <span className="px-2 py-1 text-xs font-medium bg-muted/50 text-muted-foreground border border-border/50 rounded-full">Not Connected</span>)}
               </div>
               <h3 className="font-semibold mb-2">Google Analytics</h3>
               <p className="text-sm text-muted-foreground mb-4">Website traffic and user behavior analytics</p>
               {integrationStatus.google_analytics === 'connected' ? (
-                <button 
+                <button
                   onClick={() => router.push('/dashboard/analytics')}
                   className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
                 >
                   View Dashboard
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={connectGoogleAnalytics}
                   className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
                 >
@@ -262,7 +263,7 @@ export default function DashboardPage() {
             <div className="bg-card rounded-xl border border-border p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center">
-                  <img src="/Dodo.svg" className="w-10 h-10"  alt="Dodo-Payments-logo" />
+                  <img src="/Dodo.svg" className="w-10 h-10" alt="Dodo-Payments-logo" />
                 </div>
                 {integrationStatus.dodo_payments === 'connected' ? (
                   <span className="px-2 py-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">Connected</span>
@@ -272,14 +273,14 @@ export default function DashboardPage() {
               <h3 className="font-semibold mb-2">Dodo Payments</h3>
               <p className="text-sm text-muted-foreground mb-4">Payment processing and subscription management</p>
               {integrationStatus.dodo_payments === 'connected' ? (
-                <button 
+                <button
                   onClick={() => router.push('/dashboard/dodo-payments')}
                   className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
                 >
                   View Dashboard
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={connectDodoPayments}
                   className="w-full bg-lime-600 hover:bg-lime-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
                 >
@@ -307,7 +308,7 @@ export default function DashboardPage() {
               <div className="text-3xl font-bold text-foreground">
                 {Object.values(integrationStatus).filter(status => status === 'connected').length}
               </div>
-              
+
             </div>
             <div className="bg-card rounded-xl border border-border p-6">
               <h3 className="font-semibold mb-4">Total Services</h3>
@@ -320,8 +321,14 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground">All systems operational</p>
             </div>
           </div>
-          </main>
-      </div>
-    </div>
+
+
+          {/* Real-time Intent Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <LiveUserIntent />
+          </div>
+        </main>
+      </div >
+    </div >
   )
 }
