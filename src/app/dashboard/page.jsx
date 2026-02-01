@@ -1,5 +1,5 @@
 "use client"
-
+import { LiveUserIntent } from "@/components/LiveUserIntent";
 import { DashboardSidebar } from "./seo/dashboard-sidebar"
 import { DashboardTopbar } from "./seo/dashboard-topbar"
 import { MetricsBento } from "./seo/metrics-bento"
@@ -15,6 +15,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
+const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
 
 
 export default function DashboardPage() {
@@ -320,6 +321,11 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground">All systems operational</p>
             </div>
           </div>
+          {/* 🔥 Live Purchase Intent */}
+<div className="bg-card rounded-xl border border-border p-6 mb-8">
+  <LiveUserIntent clientId={clientId} />
+</div>
+
           </main>
       </div>
     </div>
