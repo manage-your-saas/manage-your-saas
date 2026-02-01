@@ -26,21 +26,19 @@ type IntentSession = {
  */
 function calculateScore(s: IntentSession): number {
   let score = 0;
-
   if (s.pageViews >= 3) score += 10;
   if (s.duration >= 60) score += 5;
   if (s.ctaClicks > 0) score += 10;
   if (s.returned) score += 10;
-
   return score;
 }
 
 export async function POST(req: Request) {
   try {
-    // ✅ Correct way to read query params in App Router
+    // ✅ DEPLOY-SAFE way (NO nextUrl)
     const apiKey =
       req.headers.get("x-api-key") ||
-      req.nextUrl.searchParams.get("apiKey");
+      new URL(req.url).searchParams.get("apiKey");
 
     const body = await req.json();
 
@@ -55,11 +53,6 @@ export async function POST(req: Request) {
       event: "pageview" | "duration" | "cta" | "return";
       value?: number;
     } = body;
-
-    console.log("DEBUG clientId =", clientId);
-    console.log("DEBUG apiKey =", apiKey);
-    console.log("DEBUG expectedKey =", CLIENT_KEYS[clientId]);
-
 
     // ---- AUTH CHECK ----
     if (!clientId || CLIENT_KEYS[clientId] !== apiKey) {
@@ -107,10 +100,8 @@ export async function POST(req: Request) {
         timestamp: new Date().toISOString(),
       });
 
-      // keep last 10 alerts only
       await redis.ltrim(alertKey, 0, 9);
 
-      // update alerted flag
       await redis.set(
         sessionKey,
         { ...session, score },
